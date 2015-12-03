@@ -13,13 +13,11 @@ InstallMethod( HashTableCreate, "for a sample object and an options record",
 [ IsObject, IsRecord ],
 function( x, opt )
   local hashTable, type;
-  hashTable := ShallowCopy(opt);
   hashTable := rec();
+  type := HashTableType;
   if IsBound(opt.length) then
-    type := HashTableType;
     hashTable.length := NextPrimeInt(opt.length);
   else
-    type := HashTableType;
     hashTable.length := 100003;
   fi;
   hashTable.elements := [];
