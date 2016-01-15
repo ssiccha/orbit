@@ -1,4 +1,3 @@
-
 ###############################
 # function hashTableOrbit
 # Input:
@@ -8,7 +7,8 @@
 # Output:
 #   A list containg m0G
 ###############################
-##  TODO: Add HashTable
+##  TODO: Run in HPC GAP
+##  TODO: Do a Shared-Memory HashTable Version
 ##  (sergio / Mi 18 Nov 2015 10:24:32 UTC)
 hashTableOrbit := function(G, m0)
   local gens, r, L, largestMovedPoint, bitTable, x, options, hTable, current, m, newPoint, i;
