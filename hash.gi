@@ -21,7 +21,9 @@ function( x, opt )
     hashTable.length := 100003;
   fi;
   hashTable.elements := [];
-    hashTable.elements[ hashTable.length+1 ] := fail;
+    ## allocates the correct amount of memory (each entry is a pointer)
+    ## and prevents GAP from shrinking the list
+    hashTable.elements[ hashTable.length+1 ] := fail; 
   hashTable.numberElements := 0;
   hashTable.collisions := 0;
   hashTable.accesses := 0;
