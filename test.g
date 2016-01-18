@@ -8,4 +8,4 @@ Read("init.g");
 ## fresh HashTable
 ht := HashTableCreate( 1, rec() );
 G := SymmetricGroup(10);
-hashTableOrbit( (1,2,3), G );
+hashTableOrbit( G, (1,2,3) );
