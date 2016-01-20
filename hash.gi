@@ -44,7 +44,7 @@ end );
 #   IsObject
 #
 # Output:
-#   Returns 1 if x was not in ht. Otherwise returns 0.
+#   Returns true iff x was not in ht, otherwise false.
 ###############################
 InstallMethod( HashTableAdd, "for an object",
 [ IsMyHashTable, IsObject ],
@@ -54,13 +54,13 @@ function( ht, x ) ## TODO should x be readonly?
   atomic ht!.elements do
     if not IsBound( ht!.elements[ hashValue ] ) then
       ht!.elements[ hashValue ] := [ x ];
-      return 1;
+      return true;
     elif not x in ht!.elements[ hashValue ] then
       AddSet( ht!.elements[ hashValue ], x );
-      return 1;
+      return true;
     fi;
   od;
-  return 0;
+  return false;
 end );
 
 ###############################
