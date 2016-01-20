@@ -16,5 +16,5 @@ Read("init.g");
 ht := HashTableCreate( 1, rec() );
 
 ## test hTO
-G := SymmetricGroup(10);
-task := RunTask( hashTableOrbit, G, (1,2,3) );
+G := SymmetricGroup( 70 );
+task := RunTask( hashTableOrbitMaster, G, (1,2,3), rec() );
