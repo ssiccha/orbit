@@ -24,6 +24,7 @@ function( x, opt )
     ## allocates the correct amount of memory (each entry is a pointer)
     ## and prevents GAP from shrinking the list
     hashTable.elements[ hashTable.length+1 ] := fail; 
+  hashTable.elements := ShareObj( hashTable.elements );
   hashTable.numberElements := 0;
   hashTable.collisions := 0;
   hashTable.accesses := 0;
@@ -47,16 +48,18 @@ end );
 ###############################
 InstallMethod( HashTableAdd, "for an object",
 [ IsMyHashTable, IsObject ],
-function( ht, x )
+function( ht, x ) ## TODO should x be readonly?
   local hashValue;
   hashValue := PARORB_HashFunction( x ) mod ht!.length + 1;
-  if not IsBound( ht!.elements[ hashValue ] ) then
-    ht!.elements[ hashValue ] := [ x ];
-    return 1;
-  elif not x in ht!.elements[ hashValue ] then
-    AddSet( ht!.elements[ hashValue ], x );
-    return 1;
-  fi;
+  atomic ht!.elements do
+    if not IsBound( ht!.elements[ hashValue ] ) then
+      ht!.elements[ hashValue ] := [ x ];
+      return 1;
+    elif not x in ht!.elements[ hashValue ] then
+      AddSet( ht!.elements[ hashValue ], x );
+      return 1;
+    fi;
+  od;
   return 0;
 end );
 
