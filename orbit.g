@@ -83,6 +83,23 @@ hashTableOrbitMaster := function( G, m0, options )
 end;
 
 ###############################
+# function hashTableOrbitSlave
+# Input:
+
+#
+# Output:
+#   
+###############################
+hashTableOrbitSlave := function()
+  local localNewPoints, done;
+  ## TODO make done threadlocal
+  while not done do
+    localNewPoints := fetchNewPoints();
+    findNewPoints( localNewPoints );
+  od;
+  return;
+end;
+###############################
 # function findNewPoints
 # Input:
 #   newPoints -
