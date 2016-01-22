@@ -10,7 +10,7 @@ BindGlobal( "_SERSI",
     rec(
       C := rec(
         NUMBER_GRAB_NEW := 100,
-        NUMBER_THREADS := 2,
+        NUMBER_THREADS := 1,
         gens := "",
         largestMovedPoint := ""
       ),
@@ -27,8 +27,9 @@ ShareObj( _SERSI );
 # hashTableOrbit := function(hashTable, G, m0) end;  ## TODO keep as wrapper?
 hashTableOrbitMaster := function( G, m0, options ) end;
 hashTableOrbitSlave := function() end;
-findNewPoints := function() end;
+accessControlVariableAndFetch := function() end;
 fetchNewPoints := function() end;
+findNewPoints := function() end;
 
 
 ###############################
@@ -43,6 +44,9 @@ fetchNewPoints := function() end;
 ###############################
 hashTableOrbitMaster := function( G, m0, options )
   ## INITIALIZE ##
+  local listOfThreads;
+  listOfThreads := [];
+
   atomic _SERSI do
     AdoptObj( _SERSI );
     MakeReadOnlyObj( _SERSI );
@@ -60,17 +64,29 @@ hashTableOrbitMaster := function( G, m0, options )
     HashTableCreate( m0, rec( length := 10^8 ) )
   );
   _SERSI.ctrl := ShareObj( rec() );
+  ## newPoints = [], since m0 will be passed to 
+  ## the first call of findNewPoints
   atomic _SERSI.ctrl do
-    IncorporateObj(_SERSI.ctrl, "newPoints", [ m0 ] );
+    IncorporateObj(_SERSI.ctrl, "newPoints", [] );
     IncorporateObj(_SERSI.ctrl, "numberWaiting", 0 );
     IncorporateObj(_SERSI.ctrl, "done", false );
   od;
 
   ## fill newPoints first
-  findNewPoints();
+  findNewPoints( [ m0 ] );
 
   ## spawn findNewPoints tasks, each worker takes a chunk of new points
-    ## TODO
+  for i in [ 1 .. _SERSI.C.NUMBER_THREADS ] do
+    listOfThreads[ i ] := ThreadID(
+      CreateThread(
+        hashTableOrbitSlave
+      )
+    );
+  od;
+  for i in listOfThreads do
+    WaitThread( i );
+    Print( "Thread ", i, " finished!\n" );
+  od;
 
   ## return result
   atomic _SERSI.hashTable!.elements do
@@ -91,68 +107,26 @@ end;
 ###############################
 hashTableOrbitSlave := function()
   local localNewPoints, done;
-  ## TODO make done threadlocal
+  done := false;
   while not done do
     localNewPoints := fetchNewPoints();
+    Print( "Thread ", ThreadID( CurrentThread() ),
+      " fetched ", Size( localNewPoints ),
+      " new Points.\n"
+    );
     findNewPoints( localNewPoints );
   od;
   return;
 end;
 
 ###############################
-# function findNewPoints
-# Input:
-#   newPoints -
-#   hashTable -
-#   G -
-#
-# Output:
-#   newPoints
-###############################
-## Case: Sym(M) acting on Permutations
-##        using a hash table
-findNewPoints := function()
-  local localNewPoints, foundNew,
-    gen, x, m, i, n;
-  localNewPoints := [];
-
-  ## grab and delete NUMBER_GRAB_NEW many new points from newPoints
-  atomic _SERSI.ctrl do
-    # TODO maybe make two copies of each 'half' instead
-    n := Minimum( Size( _SERSI.ctrl.newPoints ), _SERSI.C.NUMBER_GRAB_NEW );
-    for i in [1 .. n ] do
-      Add( localNewPoints, Remove( _SERSI.ctrl.newPoints ) );
-    od;
-  od;
-
-  ## fill localNewPoints
-  ## new elements are added to and taken away from the end
-  while not ( IsEmpty( localNewPoints ) or Length( localNewPoints ) >= 1000 ) do
-    m := localNewPoints[ Size(localNewPoints) ];
-    Unbind( localNewPoints[ Size(localNewPoints) ] );
-    for gen in _SERSI.C.gens do
-      x := m ^ gen;
-      foundNew := HashTableAdd( _SERSI.hashTable, x );
-      if foundNew = true then
-        localNewPoints[ Size(localNewPoints) + 1 ] := x;
-      fi;
-    od;
-  od;
-
-  ## add to newPoints
-  atomic _SERSI.ctrl do
-    Append( _SERSI.ctrl.newPoints, localNewPoints );
-  od;
-end;
-
-###############################
-# function fetchNewPoints
+# function accessControlVariableAndFetch
 # Input:
 #
 # Output:
 #   localNewPoints
 ###############################
-fetchNewPoints := function()
+accessControlVariableAndFetch := function()
   local localNewPoints, done, iWasIdle;
   done := false;
   iWasIdle := false;
@@ -163,10 +137,10 @@ fetchNewPoints := function()
         done := _SERSI.ctrl.done;
       fi;
       # pop from gnp
-      #TODO
+      localNewPoints := fetchNewPoints();
       # if there are waiting threads and there is still something to do,
       # wake up another thread
-      if ( _SERSI.ctrl.numberWaiting > 0 and _SERSI.ctrl.newPoints != [] ) then
+      if ( _SERSI.ctrl.numberWaiting > 0 and _SERSI.ctrl.newPoints <> [] ) then
         SignalSemaphore( _SERSI.sema );
       fi;
       # if there is nothing to do, update the invariant
@@ -195,4 +169,59 @@ fetchNewPoints := function()
   ## we are done. Wake up another thread
   SignalSemaphore( _SERSI.sema );
   return localNewPoints;
+end;
+
+###############################
+# function fetchNewPoints
+# Input:
+#
+# Output:
+#   localNewPoints
+###############################
+fetchNewPoints := function()
+  ## grab and delete NUMBER_GRAB_NEW many new points from newPoints
+  ## must be called having RW access to _SERSI.ctrl
+  local i, n, localNewPoints;
+#  atomic _SERSI.ctrl do
+  # TODO maybe make two copies of each 'half' instead
+  n := Minimum( Size( _SERSI.ctrl.newPoints ), _SERSI.C.NUMBER_GRAB_NEW );
+  for i in [1 .. n ] do
+    Add( localNewPoints, Remove( _SERSI.ctrl.newPoints ) );
+  od;
+#  od;
+  return localNewPoints;
+end;
+
+###############################
+# function findNewPoints
+# Input:
+#   localNewPoints
+#
+# Output:
+#
+###############################
+## Case: Sym(M) acting on Permutations
+##        using a hash table
+findNewPoints := function( localNewPoints )
+  local foundNew,
+    gen, x, m, i, n;
+  ## fill localNewPoints
+  ## new elements are added to and taken away from the end
+  while not ( IsEmpty( localNewPoints ) or Length( localNewPoints ) >= 1000 ) do
+    m := localNewPoints[ Size(localNewPoints) ];
+    Unbind( localNewPoints[ Size(localNewPoints) ] );
+    for gen in _SERSI.C.gens do
+      x := m ^ gen;
+      foundNew := HashTableAdd( _SERSI.hashTable, x );
+      if foundNew = true then
+        localNewPoints[ Size(localNewPoints) + 1 ] := x;
+      fi;
+    od;
+  od;
+
+  ## add to newPoints
+  atomic _SERSI.ctrl do
+    Append( _SERSI.ctrl.newPoints, localNewPoints );
+  od;
+  return;
 end;
