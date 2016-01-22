@@ -44,7 +44,7 @@ findNewPoints := function() end;
 ###############################
 hashTableOrbitMaster := function( G, m0, options )
   ## INITIALIZE ##
-  local listOfThreads;
+  local listOfThreads, i;
   listOfThreads := [];
 
   atomic _SERSI do
@@ -53,8 +53,8 @@ hashTableOrbitMaster := function( G, m0, options )
   od;
 
   ## init and/or set global variables and constants
-  _SERSI.C.NUMBER_THREADS := 2;
-  _SERSI.C.NUMBER_GRAB_NEW := 100;
+  #_SERSI.C.NUMBER_THREADS := 2;
+  #_SERSI.C.NUMBER_GRAB_NEW := 100;
   _SERSI.C.gens := GeneratorsOfGroup(G);
   _SERSI.C.largestMovedPoint := LargestMovedPoint( _SERSI.C.gens );
   _SERSI.C := Immutable( _SERSI.C );
@@ -64,7 +64,7 @@ hashTableOrbitMaster := function( G, m0, options )
     HashTableCreate( m0, rec( length := 10^8 ) )
   );
   _SERSI.ctrl := ShareObj( rec() );
-  ## newPoints = [], since m0 will be passed to 
+  ## newPoints = [], since m0 will be passed to
   ## the first call of findNewPoints
   atomic _SERSI.ctrl do
     IncorporateObj(_SERSI.ctrl, "newPoints", [] );
@@ -77,11 +77,11 @@ hashTableOrbitMaster := function( G, m0, options )
 
   ## spawn findNewPoints tasks, each worker takes a chunk of new points
   for i in [ 1 .. _SERSI.C.NUMBER_THREADS ] do
-    listOfThreads[ i ] := ThreadID(
+    listOfThreads[ i ] :=
       CreateThread(
         hashTableOrbitSlave
-      )
-    );
+      );
+    Print( "hTOSlave started.\n" );
   od;
   for i in listOfThreads do
     WaitThread( i );
@@ -109,7 +109,7 @@ hashTableOrbitSlave := function()
   local localNewPoints, done;
   done := false;
   while not done do
-    localNewPoints := fetchNewPoints();
+    localNewPoints := accessControlVariableAndFetch();
     Print( "Thread ", ThreadID( CurrentThread() ),
       " fetched ", Size( localNewPoints ),
       " new Points.\n"
@@ -182,13 +182,16 @@ fetchNewPoints := function()
   ## grab and delete NUMBER_GRAB_NEW many new points from newPoints
   ## must be called having RW access to _SERSI.ctrl
   local i, n, localNewPoints;
-#  atomic _SERSI.ctrl do
+  localNewPoints := [];
   # TODO maybe make two copies of each 'half' instead
   n := Minimum( Size( _SERSI.ctrl.newPoints ), _SERSI.C.NUMBER_GRAB_NEW );
   for i in [1 .. n ] do
     Add( localNewPoints, Remove( _SERSI.ctrl.newPoints ) );
   od;
-#  od;
+  Print( #DEBUG
+    Size( _SERSI.ctrl.newPoints ), ", ",
+    Size( localNewPoints ), "\n"
+  );
   return localNewPoints;
 end;
 
@@ -218,6 +221,9 @@ findNewPoints := function( localNewPoints )
       fi;
     od;
   od;
+  Print(
+    "lNP: ", Size( localNewPoints), "\n"
+  );
 
   ## add to newPoints
   atomic _SERSI.ctrl do
