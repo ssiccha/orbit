@@ -85,10 +85,9 @@ end;
 ###############################
 # function hashTableOrbitSlave
 # Input:
-
 #
 # Output:
-#   
+#
 ###############################
 hashTableOrbitSlave := function()
   local localNewPoints, done;
@@ -99,6 +98,7 @@ hashTableOrbitSlave := function()
   od;
   return;
 end;
+
 ###############################
 # function findNewPoints
 # Input:
@@ -143,4 +143,56 @@ findNewPoints := function()
   atomic _SERSI.ctrl do
     Append( _SERSI.ctrl.newPoints, localNewPoints );
   od;
+end;
+
+###############################
+# function fetchNewPoints
+# Input:
+#
+# Output:
+#   localNewPoints
+###############################
+fetchNewPoints := function()
+  local localNewPoints, done, iWasIdle;
+  done := false;
+  iWasIdle := false;
+  while not done do
+    atomic _SERSI.ctrl do
+      ## done stores whether we are completely finished
+      if _SERSI.ctrl.done then
+        done := _SERSI.ctrl.done;
+      fi;
+      # pop from gnp
+      #TODO
+      # if there are waiting threads and there is still something to do,
+      # wake up another thread
+      if ( _SERSI.ctrl.numberWaiting > 0 and _SERSI.ctrl.newPoints != [] ) then
+        SignalSemaphore( _SERSI.sema );
+      fi;
+      # if there is nothing to do, update the invariant
+      # and wait on the semaphore after leaving the atomic statement
+      if localNewPoints = [] then
+        _SERSI.ctrl.numberWaiting := _SERSI.ctrl.numberWaiting + 1;
+        # check if we are done completely:
+        # if all threads, including this one, signalled that they are idle
+        if _SERSI.ctrl.numberWaiting = _SERSI.C.NUMBER_THREADS then
+          _SERSI.ctrl.done := true;
+        fi;
+        # and there are no new Points to check.
+        iWasIdle := true;
+      # if this thread was idle and resumes work,
+      # update the corresponding invariant
+      elif iWasIdle then
+        _SERSI.ctrl.numberWaiting := _SERSI.ctrl.numberWaiting - 1;
+        iWasIdle := false;
+      fi;
+    od;
+    # go idle if there is nothing to do
+    if localNewPoints = [] and not done then
+      WaitSemaphore( _SERSI.sema );
+    fi;
+  od;
+  ## we are done. Wake up another thread
+  SignalSemaphore( _SERSI.sema );
+  return localNewPoints;
 end;
