@@ -20,11 +20,18 @@ function( x, opt )
   else
     hashTable.length := 100003;
   fi;
-  hashTable.elements := [];
+  # old version
     ## allocates the correct amount of memory (each entry is a pointer)
     ## and prevents GAP from shrinking the list
-    hashTable.elements[ hashTable.length+1 ] := fail; 
-  hashTable.elements := ShareObj( hashTable.elements );
+    # hashTable.elements := [];
+    # hashTable.elements[ hashTable.length+1 ] := fail;
+    # hashTable.elements := ShareObj( hashTable.elements );
+  # old version end
+  hashTable.elements := List(
+    [ 1 .. hashTable.length ],
+    x -> AtomicList( [  ] )
+  );
+  MakeReadOnlyObj( hashTable.elements );
   hashTable.numberElements := 0;
   hashTable.collisions := 0;
   hashTable.accesses := 0;
@@ -38,7 +45,7 @@ end );
 ###############################
 # Operation HashTableAdd
 # Input:
-#   ht - 
+#   ht -
 #   x -
 # Filters:
 #   IsObject
@@ -51,12 +58,13 @@ InstallMethod( HashTableAdd, "for an object",
 function( ht, x ) ## TODO should x be readonly?
   local hashValue;
   hashValue := PARORB_HashFunction( x ) mod ht!.length + 1;
-  atomic ht!.elements do
+  atomic readonly ht!.elements do
+    ## TODO unnecessary
     if not IsBound( ht!.elements[ hashValue ] ) then
       ht!.elements[ hashValue ] := [ x ];
       return true;
     elif not x in ht!.elements[ hashValue ] then
-      AddSet( ht!.elements[ hashValue ], x );
+      Add( ht!.elements[ hashValue ], x ); ##TODO AddSet
       return true;
     fi;
   od;
@@ -84,7 +92,7 @@ function( p )
     else
       TRIM_PERM(p, largestMovedPoint);
     fi;
-  fi;    
+  fi;
   return HashKeyBag(p, 255, 0, 2*largestMovedPoint);
 end );
 
