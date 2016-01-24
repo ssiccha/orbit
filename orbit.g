@@ -1,27 +1,10 @@
-## GLOBAL variables
-## constants are stored in _SERSI.C
-## variables are stored in _SERSI
-## parameter-dependant constants will be filled upon entry
-if IsBound( _SERSI ) then
-  MakeReadWriteGlobal( "_SERSI" );
-  Unbind( _SERSI );
-fi;
-BindGlobal( "_SERSI",
-    rec(
-      C := rec(
-        NUMBER_GRAB_NEW := 100,
-        NUMBER_THREADS := 4,
-        gens := "",
-        largestMovedPoint := ""
-      ),
-      hashTable := "",
-      ctrl := "",
-      sema := CreateSemaphore()
-    )
-);
-## necessary to let _SERSI be adopted by the master thread
-ShareObj( _SERSI );
+## TODO trace bug: hpc.g
+## TODO make access to hashTable parallel
 
+## _SERSI stores GLOBAL variables and constants
+if not IsBound( _SERSI ) then
+  BindGlobal( "_SERSI", rec() );
+fi;
 
 ## definition of functions
 # hashTableOrbit := function(hashTable, G, m0) end;  ## TODO keep as wrapper?
@@ -47,10 +30,28 @@ hashTableOrbitMaster := function( G, m0, options )
   local listOfThreads, i;
   listOfThreads := [];
 
-  atomic _SERSI do
-    AdoptObj( _SERSI );
-    MakeReadOnlyObj( _SERSI );
-  od;
+  ## GLOBAL variables
+  ## constants are stored in _SERSI.C
+  ## variables are stored in _SERSI
+  ## parameter-dependant constants will be filled upon entry
+  if IsBound( _SERSI ) then
+    MakeReadWriteGlobal( "_SERSI" );
+    Unbind( _SERSI );
+  fi;
+  BindGlobal( "_SERSI",
+      rec(
+        C := rec(
+          NUMBER_GRAB_NEW := 100,
+          NUMBER_THREADS := 4,
+          gens := "",
+          largestMovedPoint := ""
+        ),
+        hashTable := "",
+        ctrl := "",
+        sema := CreateSemaphore()
+      )
+  );
+  MakeReadOnlyObj( _SERSI );
 
   ## init and/or set global variables and constants
   _SERSI.C.gens := GeneratorsOfGroup(G);
@@ -234,7 +235,11 @@ findNewPoints := function( localNewPoints )
     profile_count := 0;
   ## fill localNewPoints
   ## new elements are added to and taken away from the end
-  while not ( IsEmpty( localNewPoints ) or Length( localNewPoints ) >= 1000 ) do
+  while not (
+    IsEmpty( localNewPoints )
+    or
+    Length( localNewPoints ) >= 10 * _SERSI.C.NUMBER_GRAB_NEW
+  ) do
     m := localNewPoints[ Size(localNewPoints) ];
     Unbind( localNewPoints[ Size(localNewPoints) ] );
     for gen in _SERSI.C.gens do
