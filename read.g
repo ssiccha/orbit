@@ -10,6 +10,7 @@
 ##
 #############################################################################
 
+Read("../utils.g");
 if not IsBound( HashTableType ) then
   Read("hash.gd");
 fi;

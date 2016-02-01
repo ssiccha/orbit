@@ -10,7 +10,7 @@
 ##
 #############################################################################
 ## Benchmarking and testing of hashTableOrbit
-Read("init.g");
+Read("read.g");
 
 ## fresh HashTable
 ht := HashTableCreate( 1, rec() );
