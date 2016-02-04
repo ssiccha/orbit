@@ -12,12 +12,15 @@
 ## Benchmarking and testing of hashTableOrbit
 Read("read.g");
 
-## fresh HashTable
-ht := HashTableCreate( 1, rec() );
-
 ## test hTO
-testHashTableOrbit := function( x, n, NUMBER_THREADS, NUMBER_GRAB_NEW )
+testHashTableOrbit := function( x, n, NUMBER_THREADS, NUMBER_GRAB_NEW, opt... )
   local G, res1, res2, task;
+  if opt = [] then
+    opt := rec();
+  fi;
+  if not IsBound( opt.verbose ) then
+    opt.verbose := false;
+  fi;
   G := SymmetricGroup( n );
   task := RunTask(
     hashTableOrbitMaster,
@@ -28,13 +31,13 @@ testHashTableOrbit := function( x, n, NUMBER_THREADS, NUMBER_GRAB_NEW )
       NUMBER_GRAB_NEW := NUMBER_GRAB_NEW
     )
   );
-  res1 := Size( TaskResult( task ) );
-  Print( res1, "\n" );
-#  res2 := Size( x ^ G );
-#  Print( res2, "\n" );
-#  return (res1 = res2 );
+  res1 := TaskResult( task );
+  if opt.verbose then
+    Print( Size( res1 ), "\n" );
+  fi;
+  return res1;
 end;
 
-testHashTableOrbit( (1,2,3), 100, 8, 200 );
-testHashTableOrbit( (1,2,3), 130, 8,  20 );  # faster than 200
+#testHashTableOrbit( (1,2,3), 100, 8, 200 );
+#testHashTableOrbit( (1,2,3), 130, 8,  20 );  # faster than 200
 # BUG: sometimes yields values bigger than 715520
