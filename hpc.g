@@ -10,17 +10,18 @@
 ##
 #############################################################################
 ## Benchmarking and testing of hashTableOrbit
-Read("read.g");
+## Read("read.g");
 
 ## test hTO
 testHashTableOrbit := function( x, n, NUMBER_THREADS, NUMBER_GRAB_NEW, opt... )
   local G, res1, res2, task;
   if opt = [] then
     opt := rec();
+  else
+    opt := opt[1];
   fi;
-  if not IsBound( opt.verbose ) then
-    opt.verbose := false;
-  fi;
+  opt.verbose := IsBound( opt.verbose );
+
   G := SymmetricGroup( n );
   task := RunTask(
     hashTableOrbitMaster,

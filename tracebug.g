@@ -1,9 +1,9 @@
-Read("hpc.g");
+#Read("hpc.g");
 
 i := 1;
 res := [ 1 .. 2280 ];
 while Size(res) = 2280 do
-  res := testHashTableOrbit( (1,2,3), 20, 2, 20 );
+  res := testHashTableOrbit( (1,2,3), 20, 2, 20, rec( verbose := true ) );
 od;
 tmp := ShallowCopy( res );
 Sort( tmp );
