@@ -10,7 +10,7 @@
 ##
 #############################################################################
 ## Benchmarking and testing of hashTableOrbit
-## Read("read.g");
+Read("../utils.g");
 
 ## test hTO
 testHashTableOrbit := function( x, n, NUMBER_THREADS, NUMBER_GRAB_NEW, opt... )
@@ -40,5 +40,6 @@ testHashTableOrbit := function( x, n, NUMBER_THREADS, NUMBER_GRAB_NEW, opt... )
 end;
 
 #testHashTableOrbit( (1,2,3), 100, 8, 200 );
-#testHashTableOrbit( (1,2,3), 130, 8,  20 );  # faster than 200
-# BUG: sometimes yields values bigger than 715520
+#testHashTableOrbit( (1,2,3), 130, 8,  20 );  # faster than 200?
+
+_args := [ (1,2,3), 30, 8, 20 ];
