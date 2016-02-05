@@ -238,32 +238,40 @@ end;
 ## Case: Sym(M) acting on Permutations
 ##        using a hash table
 findNewPoints := function( localNewPoints )
-  local foundNew,
-    gen, x, m, i, n, profile_count;
-    profile_count := 0;
-  ## fill localNewPoints
-  ## new elements are added to and taken away from the end
+  local current, last, foundNew,
+    gen, x, m, i,
+    count, numberFetched;
+  current := 1;
+  last := Length( localNewPoints );
+  numberFetched := last;
+  ## Increase lNP list size so that #lNP * #gens many new elements can be stored
+  localNewPoints[ ( Length( _SERSI.C.gens ) + 1 ) * last + 1 ] := fail;
+  ## apply generators onto localNewPoints using FIFO
   while not (
-    IsEmpty( localNewPoints )
+    current > last
     or
-    Length( localNewPoints ) >= 10 * _SERSI.C.NUMBER_GRAB_NEW
-  ) do
-    m := localNewPoints[ Size(localNewPoints) ];
-    Unbind( localNewPoints[ Size(localNewPoints) ] );
+    last = Length(localNewPoints)
+  )
+  do
+    m := localNewPoints[ current ];
+    current := current + 1;
     for gen in _SERSI.C.gens do
       x := m ^ gen;
       foundNew := HashTableAdd( _SERSI.hashTable, x );
       if foundNew = true then
-        localNewPoints[ Size(localNewPoints) + 1 ] := x;
-        profile_count := profile_count + 1;
+        localNewPoints[ last + 1 ] := x;
+        last := last + 1;
       fi;
     od;
   od;
+  localNewPoints := localNewPoints{ [ current .. last ] }; ## current > last returns empty list
   Print(
     ", found ",
-    profile_count,
-    ".\n >> lNP: ",
-    Size( localNewPoints )
+    last - numberFetched,
+    ".\n"
+    #,
+    #"  >> lNP: ",
+    #Size( localNewPoints )
   );
 
   ## add to newPoints
