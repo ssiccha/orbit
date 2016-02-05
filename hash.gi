@@ -97,9 +97,9 @@ end );
 # Output:
 #   An Integer < 2^64 (or 2^32)
 ###############################
-InstallMethod( PARORB_HashFunction, "for storing permutaions",
-[ IsPerm ],
-function( p )
+#InstallMethod( PARORB_HashFunction, "for storing permutaions",
+#[ IsPerm ],
+PARORB_HashFunction := function( p )
   local largestMovedPoint;
   largestMovedPoint := LARGEST_MOVED_POINT_PERM( p );
   if IsPerm4Rep( p ) then
@@ -110,6 +110,7 @@ function( p )
     fi;
   fi;
   return HashKeyBag(p, 255, 0, 2*largestMovedPoint);
-end );
+end;
+#);
 
 
