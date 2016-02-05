@@ -29,7 +29,7 @@ function( x, opt )
   # old version end
   hashTable.elements := List(
     [ 1 .. hashTable.length ],
-    x -> AtomicList( [  ] )
+    x -> MakeWriteOnceAtomic( AtomicList( [  ] ) )
   );
   MakeReadOnlyObj( hashTable.elements );
   hashTable.numberElements := 0;
@@ -55,20 +55,36 @@ end );
 ###############################
 InstallMethod( HashTableAdd, "for an object",
 [ IsMyHashTable, IsObject ],
-function( ht, x ) ## TODO should x be readonly?
-  local hashValue;
+function( ht, x ) ## TODO should x be readonly? I dont think so
+  local hashValue, hashBag, success, last;
   hashValue := PARORB_HashFunction( x ) mod ht!.length + 1;
-  atomic readonly ht!.elements do
-    ## TODO unnecessary
-    if not IsBound( ht!.elements[ hashValue ] ) then
-      ht!.elements[ hashValue ] := [ x ];
-      return true;
-    elif not x in ht!.elements[ hashValue ] then
-      Add( ht!.elements[ hashValue ], x ); ##TODO AddSet
-      return true;
+  hashBag := ht!.elements[ hashValue ];
+  ## validity of last can change if another thread accesses the same bag!
+  while true do
+    last := Length( hashBag );
+    if not x in hashBag then
+      hashBag[ last+1 ] := x;
+      ## if write was not successfull, try again in next loop if necessary
+      if hashBag[ last+1 ] = x then
+        return true;
+      fi;
+      Print("Simultaneous Access! ");
+    ## x was found in hashBag
+    else
+      return false;
     fi;
   od;
-  return false;
+  #TODO: do not initialize sets at the beginning
+  #       instead make ht!.elements writeOnce
+  #(sergio / Do 04 Feb 2016 14:26:09 CET)
+  #    if not IsBound( ht!.elements[ hashValue ] ) then
+  #      ht!.elements[ hashValue ] := [ x ];
+  #      return true;
+  #if not x in ht!.elements[ hashValue ] then
+  #  Add( ht!.elements[ hashValue ], x ); ##TODO AddSet
+  #  return true;
+  #fi;
+  #return false;
 end );
 
 ###############################
