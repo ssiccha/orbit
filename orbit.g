@@ -3,6 +3,8 @@
 # Input:
 #   G  - Group acting on M
 #   m0 - Elem of M
+#   action - optional argument
+#     if provided action(m, g) will be called for a point m and a groupelement g
 #
 # Output:
 #   A list containg m0G
@@ -11,11 +13,38 @@
 ##  TODO: hashTable SharedObject
 ##  TODO: hashTable MakeReadOnlyObj
 ##  (sergio / Mi 18 Nov 2015 10:24:32 UTC)
-hashTableOrbit := function(G, m0)
+hashTableOrbit := function(G, m0, action...)
   local gens, r, L, largestMovedPoint, bitTable, x, options, hTable, current, m, newPoint, i;
   gens := GeneratorsOfGroup(G);
   r := Length( gens );
   L := [m0];
+
+  ## Case: action was provided
+  if Length(action) > 0 then
+    action := action[1];
+    largestMovedPoint := LargestMovedPoint( gens );
+    options := rec( length := 10^8 );
+    hTable := HashTableCreate( m0, options );
+    ## current: new elements are added to and taken away from the end
+    current := [ m0 ];
+    while not IsEmpty( current ) do
+      m := current[ Size(current) ];
+      Unbind( current[ Size(current) ] );
+      for i in [1..r] do
+        x := action( m, gens[i] );
+        newPoint := HashTableAdd( hTable, x );
+        if newPoint = 1 then
+          current[ Size(current) + 1 ] := x;
+        fi;
+      od;
+    od;
+    Unbind( hTable!.elements[ hTable!.length+1 ] );
+    L := Concatenation(
+      Compacted( hTable!.elements )
+    );
+    return L;
+  fi;
+
   ## Case: Sym(M) acting on integers
   if IsPermGroup(G) and IsInt(m0) then
     largestMovedPoint := LargestMovedPoint( gens );
@@ -30,13 +59,14 @@ hashTableOrbit := function(G, m0)
         fi;
       od;
     od;
+    return L;
+  fi;
 
   ## Case: Sym(M) acting on Permutations
   ##        using a hash table
-  elif IsPermGroup(G) and IsPerm(m0) then
+  if IsPermGroup(G) and IsPerm(m0) then
     largestMovedPoint := LargestMovedPoint( gens );
     options := rec( length := 10^8 );
-##      options := rec( length := Int(Sqrt(Float(Factorial(largestMovedPoint)))) );
     hTable := HashTableCreate( m0, options );
     ## current: new elements are added to and taken away from the end
     current := [ m0 ];
@@ -53,11 +83,11 @@ hashTableOrbit := function(G, m0)
     od;
     Unbind( hTable!.elements[ hTable!.length+1 ] );
     L := Concatenation(
-      Compacted( hTable!.elements ) 
+      Compacted( hTable!.elements )
     );
     return L;
   fi;
 
-  Error("operation not yet supported");
+  Error( "operation not yet supported!\n" );
 end;
 
