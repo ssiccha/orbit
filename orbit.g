@@ -52,22 +52,12 @@ hashTableOrbit := function(G, m0)
       od;
     od;
     Unbind( hTable!.elements[ hTable!.length+1 ] );
-    L := Concatenation( 
+    L := Concatenation(
       Compacted( hTable!.elements ) 
     );
     return L;
   fi;
 
-  ## Standard case
-  for m in L do
-    for i in [1..r] do
-      x := m ^ gens[i];
-      if not x in L then
-        Add(L, x);
-        bitTable[x] := 1;
-      fi;
-    od;
-  od;
-  return L;
+  Error("operation not yet supported");
 end;
 
