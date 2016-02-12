@@ -88,4 +88,18 @@ function( p )
   return HashKeyBag(p, 255, 0, 2*largestMovedPoint);
 end );
 
-
+###############################
+# Operation PARORB_HashFunction
+# Input:
+#   tup -
+# Filters:
+#   IsList
+#
+# Output:
+#   An integer hash value
+###############################
+InstallMethod( PARORB_HashFunction, "for tuples represented as lists",
+[ IsList ],
+function( tup )
+  return ( Product( tup^5 mod 1009 ) + Sum( tup^3 ) mod 100003 ) ^7 mod 100003;
+end );
