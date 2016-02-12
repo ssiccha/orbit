@@ -23,8 +23,8 @@ function( x, opt )
   hashTable.elements := [];
     ## allocates the correct amount of memory (each entry is a pointer)
     ## and prevents GAP from shrinking the list
-    hashTable.elements[ hashTable.length+1 ] := fail; 
-  hashTable.elements := ShareObj( hashTable.elements );
+    hashTable.elements[ hashTable.length+1 ] := fail;
+  #hashTable.elements := ShareObj( hashTable.elements );
   hashTable.numberElements := 0;
   hashTable.collisions := 0;
   hashTable.accesses := 0;
