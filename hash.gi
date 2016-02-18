@@ -101,5 +101,8 @@ end );
 InstallMethod( PARORB_HashFunction, "for tuples represented as lists",
 [ IsList ],
 function( tup )
-  return ( Product( tup^5 mod 1009 ) + Sum( tup^3 ) mod 100003 ) ^7 mod 100003;
+  local l;
+  l := Length(tup)-1;
+  return ( List( [ 0 .. l ], i -> 9^(l-i) ) * ( tup - 1 ) ) + 1;
+  ## return ( Product( tup^5 mod 1009 ) + Sum( tup^3 ) mod 100003 ) ^7 mod 100003;
 end );
