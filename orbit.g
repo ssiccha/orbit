@@ -199,3 +199,79 @@ hashTableOrbit := function(G, m0, options...)
   Error( "operation not yet supported!\n" );
 end;
 
+###############################
+# function MyOrbits
+# Input:
+#   D -
+#
+# Output:
+#   res
+###############################
+MyOrbits := function( domain )
+#function( G, domain, gens, acts, act )
+local   todo, orbs, orb, pos, res;
+  todo := BlistList([1..Length(domain)],[1..Length(domain)]);
+  orbs := [  ];
+##    res  := hashTableOrbit( TrivialGroup(), domain[pos], rec( domainSize := Length(domain) ) );
+  while SizeBlist( todo ) > 0 do
+    pos := Position( todo, true );
+    res := hashTableOrbit( TrivialGroup(), domain[pos], rec( domainSize := Length(domain) ) );
+    SubtractBlist( todo, res.bitList );
+    for orb in orbs do
+#   DEBUG
+#      if not Intersection( orb, res.orb ) = [] then
+#        Error( "orbits are not disjoint" );
+#      fi;
+    od;
+    Add( orbs, res.orb );
+    #Print( SizeBlist( todo ), " " ); #DEBUG
+  od;
+  return orbs;
+end;
+
+###############################
+# function MyOrbits2
+# Input:
+#   D -
+#
+# Output:
+#   res
+###############################
+MyOrbits2 := function( D )
+#function( G, D, gens, acts, act )
+local   orbs, orb,sort,plist,pos,use,o,nc,ld,ld1;
+  sort:=Length(D)>0 and CanEasilySortElements(D[1]);
+  plist:=IsPlistRep(D);
+  if not plist then
+    use:=BlistList([1..Length(D)],[]);
+  fi;
+  ld1:=Length(D);
+  orbs := [  ];
+  pos:=1;
+  while Length(D)>0  and pos<=Length(D) do
+    #TODO
+    orb := hashTableOrbit( TrivialGroup(), D[pos], rec( andres := "" ) );
+    # orb := OrbitOp( G,D[pos], gens, acts, act );
+    Add( orbs, orb );
+    if plist then
+      ld:=Length(D);
+      Print(ld, " ");
+      if sort then
+        D:=Difference(D,orb);
+        MakeImmutable(D); # to remember sortedness
+      else
+        D:=Filtered(D,i-> not i in orb);
+      fi;
+    else
+      for o in orb do
+        use[PositionCanonical(D,o)]:=true;
+      od;
+      # not plist -- do not take difference as there may be special
+      # `PositionCanonical' method.
+      while pos<=Length(D) and use[pos] do
+        pos:=pos+1;
+      od;
+    fi;
+  od;
+  return Immutable( orbs );
+end;
