@@ -38,7 +38,7 @@ end );
 ###############################
 # Operation HashTableAdd
 # Input:
-#   ht - 
+#   ht -
 #   x -
 # Filters:
 #   IsObject
@@ -84,7 +84,7 @@ function( p )
     else
       TRIM_PERM(p, largestMovedPoint);
     fi;
-  fi;    
+  fi;
   return HashKeyBag(p, 255, 0, 2*largestMovedPoint);
 end );
 
