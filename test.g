@@ -1,20 +1,20 @@
 #############################################################################
 ##
 ##                             orbit package
-##  hpc_test.g
+##  test.g
 ##                                                          Sergio Siccha
 ##
 ##  Copyright...
 ##
-##  tests for orbit under HPC-GAP
+##  tests for groupoid orbit
 ##
 #############################################################################
 ## Benchmarking and testing of hashTableOrbit
-Read("init.g");
+#Read("init.g");
 
-## fresh HashTable
-ht := HashTableCreate( 1, rec() );
 
-## test hTO
-G := SymmetricGroup( 70 );
-task := RunTask( hashTableOrbitMaster, G, (1,2,3), rec() );
+omega := Tuples( [1..9], 6 );;
+seeds := List( [1..200], x -> omega[ Random([1..9^6]) ] );;
+
+#hashTableOrbit( TrivialGroup(), [1..6], rec( andres := "" ) );;
+#res := MyOrbits( seeds );;
