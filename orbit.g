@@ -10,7 +10,7 @@
 #   A list containg m0G
 ###############################
 hashTableOrbit := function(G, m0, options...)
-  local gens, r, L, largestMovedPoint, bitTable, bitList, x, opt, hTable, current, m, newPoint, i, action,
+  local gens, domains, r, L, largestMovedPoint, bitTable, bitList, x, opt, hTable, current, m, newPoint, i, action,
     todo, domainSize, words, posx;
   gens := GeneratorsOfGroup(G);
   r := Length( gens );
@@ -26,8 +26,35 @@ hashTableOrbit := function(G, m0, options...)
       (1,3)(4,6)(7,9),
       (1,4,7)(2,5,8)(3,6,9),   ## move two upper lines down by one
       (7,4,1)(8,5,2)(9,6,3),   ## move two lower lines up by one
-      (1,2,4,5),
-      (1,2,3,6,9,8,7,4)
+      (1,2,5,4)(3,7),
+
+      (1,5),
+      (2,4)(3,7),
+      (4,1,2,3,6),
+      (6,3,2,1,4)
+      #(5,3),
+
+      #(3,5)
+      #(1,2,3,6,9,8,7,4), #TODO
+      #(1,2,4)   ## WRONG ##!!
+    ];
+
+    domains := [
+      [1..9],
+      [1..9],
+      [1..6],
+      [4..9],
+      [1,2,3,4,5,7,9],
+
+      [1,2,3,4,5,7,9],
+      [1,2,3,4,5,7,9],
+      [1,2,3,6],
+      [1,2,3,6],
+      [1,5,9],
+
+      [1,3,9]
+      #[1,2,3,4,6,7,8,9], #TODO
+      #[1,2,4,5],
     ];
     L := [ m0 ];
     domainSize := options.domainSize;
@@ -39,27 +66,52 @@ hashTableOrbit := function(G, m0, options...)
       posx := Position( L, m );
       for i in [ 1 .. Length(gens) + 1 ] do
         x := fail;
-        if i = 3 then
-          if IsSubset( [1..6], m ) then
-            x := OnTuples( m, gens[3] );
-          fi;
-        elif i = 4 then
-          if IsSubset( [4..9], m ) then
-            x := OnTuples( m, gens[4] );
-          fi;
-        elif i = 5 then
-          if IsSubset( [1,2,4,5], m ) then
-            x := OnTuples( m, gens[5] );
-          fi;
-        elif i = 6 then
-          if IsSubset( [1,2,3,4, 6,7,8,9], m ) then
-            x := OnTuples( m, gens[6] );
-          fi;
-        elif i = 7 then
+        if i = Length(gens) + 1 then
           x := Permuted( m, (2,6)(3,5) );
-        else
+        elif IsSubset( domains[i], m ) then
           x := OnTuples( m, gens[i] );
         fi;
+#        if i = 3 then
+#          if IsSubset( [1..6], m ) then
+#            x := OnTuples( m, gens[3] );
+#          fi;
+#        elif i = 4 then
+#          if IsSubset( [4..9], m ) then
+#            x := OnTuples( m, gens[4] );
+#          fi;
+#        elif i = 5 then
+#          if IsSubset( [1,2,3,4,5,7,9], m ) then
+#            x := OnTuples( m, gens[5] );
+#          fi;
+#
+#        elif i = 6 then
+#          if IsSubset( [1,2,3,4,5,7,9], m ) then
+#            x := OnTuples( m, gens[6] );
+#          fi;
+#        elif i = 7 then
+#          if IsSubset( [1,2,3,4,5,7,9], m ) then
+#            x := OnTuples( m, gens[7] );
+#          fi;
+#        elif i = 8 then
+#          if IsSubset( [1,2,3,4, 6,7,8,9], m ) then
+#            x := OnTuples( m, gens[8] );
+#          fi;
+#        elif i = 9 then
+#          if IsSubset( [1,5,9], m ) then
+#            x := OnTuples( m, gens[9] );
+#          fi;
+#        elif i = 10 then
+#          if IsSubset( [1,3,9], m ) then
+#            x := OnTuples( m, gens[10] );
+#          fi;
+#
+#        elif i = 11 then
+#          if IsSubset( [1,2,4,5], m ) then
+#            x := OnTuples( m, gens[11] );
+#          fi;
+#        else
+#          x := OnTuples( m, gens[i] );
+#        fi;
         if not x = fail then
           if not bitList[ PARORB_HashFunction( x ) ] then
             Add( L, x );
