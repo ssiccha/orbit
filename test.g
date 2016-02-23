@@ -26,3 +26,4 @@ seeds := List( [1..200], x -> omega[ Random([1..9^6]) ] );;
 #res := MyOrbits( omega );;
 #Length( res );
 #Sum( List( res, Length ) );
+#res := MyOrbits( omega );; Print( "--- ", Length(res), " ---", 9^6 = Sum( List( res, Length ) ), ", time = ", time, "\n");
