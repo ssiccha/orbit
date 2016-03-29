@@ -72,9 +72,10 @@ hashTableOrbitMaster := function( G, m0, options )
   _SERSI.hashTable := ShareObj(
     HashTableCreate( m0, rec( length := 10^6 ) )
   );
-  _SERSI.ctrl := ShareObj( rec() );
+  HashTableAdd( _SERSI.hashTable, m0 );
   ## newPoints = [], since m0 will be passed to
   ## the first call of findNewPoints
+  _SERSI.ctrl := ShareObj( rec() );
   atomic _SERSI.ctrl do
     IncorporateObj(_SERSI.ctrl, "newPoints", [] );
     IncorporateObj(_SERSI.ctrl, "numberWaiting", 0 );
