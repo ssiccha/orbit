@@ -1,3 +1,6 @@
+## Forward Definitions
+PARORB_HashFunction := function( p ) end;
+
 ###############################
 # Operation HashTableCreate
 # Input:
