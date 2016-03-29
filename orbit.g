@@ -43,6 +43,7 @@ hashTableOrbitMaster := function( G, m0, options )
         C := rec(
           NUMBER_GRAB_NEW := "",
           NUMBER_THREADS := "",
+          HASH_TABLE_SIZE := "",
           gens := "",
           largestMovedPoint := ""
         ),
@@ -53,7 +54,7 @@ hashTableOrbitMaster := function( G, m0, options )
   );
   MakeReadOnlyObj( _SERSI );
 
-  ## init and/or set global variables and constants
+  ## set options, global variables and constants
   _SERSI.C.gens := GeneratorsOfGroup(G);
   _SERSI.C.largestMovedPoint := LargestMovedPoint( _SERSI.C.gens );
   if IsBound( options.NUMBER_THREADS ) then
@@ -66,11 +67,16 @@ hashTableOrbitMaster := function( G, m0, options )
   else
     _SERSI.C.NUMBER_GRAB_NEW := 200;
   fi;
+  if IsBound( options.HASH_TABLE_SIZE ) then
+    _SERSI.C.HASH_TABLE_SIZE := options.HASH_TABLE_SIZE;
+  else
+    _SERSI.C.HASH_TABLE_SIZE := 10^6;
+  fi;
   _SERSI.C := Immutable( _SERSI.C );
 
   ## initialize objects in shared region
   _SERSI.hashTable := ShareObj(
-    HashTableCreate( m0, rec( length := 10^6 ) )
+    HashTableCreate( m0, rec( length := _SERSI.C.HASH_TABLE_SIZE ) )
   );
   HashTableAdd( _SERSI.hashTable, m0 );
   ## newPoints = [], since m0 will be passed to
