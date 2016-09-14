@@ -1,4 +1,122 @@
 ###############################
+# function hashTableGroupoidOnMappingsOrbit
+# Input:
+#   partialIsos
+#   domains
+#   omega
+#
+# Uses a hash table to keep track of the orbit
+#
+# Output:
+#   A record with
+#     bitlist for m0 * G
+#     list m0 * G
+#     words in generators for debugging
+###############################
+hashTableGroupoidOnMappingsOrbit := function( m0, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains, options... )
+  local encode, canonization, r, s, stack, hashTable, m, i, posx, x, bench_stack;
+  if Length( options ) = 1 then
+    options := options[1];
+  fi;
+
+  canonization := _SERSI.C.canonization;
+  m0 := canonization( m0 );
+  stack := StackCreate( 10^6 );
+  StackPush( stack, m0 );
+  hashTable := HashTableCreate( m0, rec( length := 10^5 ) );
+  bench_stack := false;
+
+  #DEBUG words := [ [] ];
+
+  while not StackIsEmpty( stack ) do
+    #BENCH
+    if not bench_stack then
+      if stack!.last > 10^5 then
+        Print( "stacksize > 10^5 " );
+        bench_stack := true;
+      fi;
+    fi;
+    m := canonization( StackPop( stack ) );
+    for i in [ 1 .. Length( gensOfAutKPN ) ] do
+      ## KPN automorphisms
+      x := canonization( Permuted( m, gensOfAutKPN[ i ] ) );
+      if HashTableAdd( hashTable, x ) then
+        StackPush( stack, x );
+      fi;
+    od;
+    for i in [ 1 .. Length( gensOfGroupoid ) ] do
+      ## Architecture partial Isomorphisms
+      if IsSubset( domains[i], m ) then
+        x := canonization( OnTuples( m, gensOfGroupoid[i] ) );
+        if HashTableAdd( hashTable, x ) then
+          StackPush( stack, x );
+        fi;
+      fi;
+    od;
+  od;
+  Unbind( hashTable!.elements[ hashTable!.length + 1 ] );
+  return Concatenation( Compacted( hashTable!.elements ) );
+end;
+
+###############################
+# function bitListGroupoidOnMappingsOrbit
+# Input:
+#   partialIsos
+#   domains
+#   omega
+#
+# Uses a Bitlist to keep track of the orbit
+#
+# Output:
+#   A record with
+#     bitlist for m0 * G
+#     list m0 * G
+#     words in generators for debugging
+###############################
+bitListGroupoidOnMappingsOrbit := function( m0, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains, options... )
+  local encode, r, s, orbit, domainSize, words, bitList, m, i, posx, x;
+  if Length( options ) = 1 then
+    options := options[1];
+  fi;
+
+  # function that determines a mapping's position in the bitList
+  encode := _SERSI.C.encode;
+
+  orbit := [ m0 ];
+  domainSize := numberProcessors ^ numberTasks;
+  words := [ [] ];
+
+  bitList := BlistList( [ 1 .. domainSize ], [] );
+  bitList[ encode( m0 ) ] := true;
+  for m in orbit do
+    posx := Position( orbit, m );
+    for i in [ 1 .. Length( gensOfAutKPN ) ] do
+      ## KPN automorphisms
+      x := Permuted( m, gensOfAutKPN[ i ] );
+      if not bitList[ encode( x ) ] then
+        Add( orbit, x );
+        bitList[ encode( x ) ] := true;
+        #Add( words, Concatenation( words[posx], [ i ] ) );
+      fi;
+    od;
+    for i in [ 1 .. Length( gensOfGroupoid ) ] do
+      ## Architecture partial Isomorphisms
+      x := fail;
+      if IsSubset( domains[i], m ) then
+        x := OnTuples( m, gensOfGroupoid[i] );
+        if not bitList[ encode( x ) ] then
+          Add( orbit, x );
+          bitList[ encode( x ) ] := true;
+          Add( words, Concatenation( words[posx], [ i ] ) );
+        fi;
+      fi;
+    od;
+  od;
+  return rec( bitList := bitList, orb := orbit, words := words );
+end;
+
+
+###############################
 # function hashTableOrbit
 # Input:
 #   G  - Group acting on M
@@ -71,47 +189,6 @@ hashTableOrbit := function(G, m0, options...)
         elif IsSubset( domains[i], m ) then
           x := OnTuples( m, gens[i] );
         fi;
-#        if i = 3 then
-#          if IsSubset( [1..6], m ) then
-#            x := OnTuples( m, gens[3] );
-#          fi;
-#        elif i = 4 then
-#          if IsSubset( [4..9], m ) then
-#            x := OnTuples( m, gens[4] );
-#          fi;
-#        elif i = 5 then
-#          if IsSubset( [1,2,3,4,5,7,9], m ) then
-#            x := OnTuples( m, gens[5] );
-#          fi;
-#
-#        elif i = 6 then
-#          if IsSubset( [1,2,3,4,5,7,9], m ) then
-#            x := OnTuples( m, gens[6] );
-#          fi;
-#        elif i = 7 then
-#          if IsSubset( [1,2,3,4,5,7,9], m ) then
-#            x := OnTuples( m, gens[7] );
-#          fi;
-#        elif i = 8 then
-#          if IsSubset( [1,2,3,4, 6,7,8,9], m ) then
-#            x := OnTuples( m, gens[8] );
-#          fi;
-#        elif i = 9 then
-#          if IsSubset( [1,5,9], m ) then
-#            x := OnTuples( m, gens[9] );
-#          fi;
-#        elif i = 10 then
-#          if IsSubset( [1,3,9], m ) then
-#            x := OnTuples( m, gens[10] );
-#          fi;
-#
-#        elif i = 11 then
-#          if IsSubset( [1,2,4,5], m ) then
-#            x := OnTuples( m, gens[11] );
-#          fi;
-#        else
-#          x := OnTuples( m, gens[i] );
-#        fi;
         if not x = fail then
           if not bitList[ PARORB_HashFunction( x ) ] then
             Add( L, x );
@@ -252,78 +329,147 @@ hashTableOrbit := function(G, m0, options...)
 end;
 
 ###############################
-# function MyOrbits
+# function bitListMyOrbits
 # Input:
 #   D -
 #
 # Output:
 #   res
 ###############################
-MyOrbits := function( domain )
-#function( G, domain, gens, acts, act )
-local   todo, orbs, orb, pos, res;
-  todo := BlistList([1..Length(domain)],[1..Length(domain)]);
-  orbs := [  ];
-##    res  := hashTableOrbit( TrivialGroup(), domain[pos], rec( domainSize := Length(domain) ) );
+bitListMyOrbits := function( omega, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains )
+  local   encode, decode, todo, domainSize, orbs, args,
+    m0, code, orb, pos, res, tmp;
+  _SERSI.encodeFunction( numberProcessors, numberTasks );
+  _SERSI.decodeFunction( numberProcessors, numberTasks );
+  encode := _SERSI.C.encode;
+  decode := _SERSI.C.decode;
+
+  domainSize := numberProcessors ^ numberTasks;
+  todo := List( omega, encode );
+  #Print( Size( todo ), " " );
+  todo := BlistList( [ 1 .. domainSize ], todo );
+  Print( "maps ", SizeBlist( todo ), " \n" );
+  orbs := [];
+  args := [  , numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains ];
   while SizeBlist( todo ) > 0 do
-    pos := Position( todo, true );
-    res := hashTableOrbit( TrivialGroup(), domain[pos], rec( domainSize := Length(domain) ) );
+    code := Position( todo, true );
+    args[1] := decode( code );
+    res := CallFuncList( bitListGroupoidOnMappingsOrbit, args );
+    #Print( SizeBlist( todo ), " " );
+    tmp := SizeBlist( todo );
     SubtractBlist( todo, res.bitList );
-    for orb in orbs do
-#   DEBUG
-#      if not Intersection( orb, res.orb ) = [] then
-#        Error( "orbits are not disjoint" );
-#      fi;
-    od;
+    tmp := tmp - SizeBlist( todo );
+    Print( "-", tmp, ", \n" );
     Add( orbs, res.orb );
     #Print( SizeBlist( todo ), " " ); #DEBUG
   od;
+  Print( "orbs ", Length( orbs ), "\n" );
+  return orbs;
+end;
+
+#   DEBUG
+#   for orb in orbs do
+#      if not Intersection( orb, res.orb ) = [] then
+#        Error( "orbits are not disjoint" );
+#      fi;
+#   od;
+
+###############################
+# function hashTableMyOrbits
+# Input:
+#   D -
+#
+# Output:
+#   res
+###############################
+hashTableMyOrbits := function( omega, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains )
+  local   encode, decode, todo, domainSize, orbs, args,
+    m0, code, orbit, pos, res, tmp;
+  _SERSI.encodeFunction( numberProcessors, numberTasks );
+  _SERSI.decodeFunction( numberProcessors, numberTasks );
+  encode := _SERSI.C.encode;
+  decode := _SERSI.C.decode;
+
+  InstallMethod( PARORB_HashFunction, "for tuples represented as lists",
+  [ IsList ],
+  _SERSI.C.encode );
+
+  domainSize := numberProcessors ^ numberTasks;
+  todo := ShallowCopy( omega );
+  if not IsSet( todo ) then
+    Error( "omega must be a set!" );
+  fi;
+  Print( "maps ", Size( todo ), " \n" );
+  orbs := [];
+  args := [  , numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains ];
+  while Size( todo ) > 0 do
+    args[1] := todo[1];
+    orbit := Set( CallFuncList( hashTableGroupoidOnMappingsOrbit, args ) );
+    tmp := Size( todo );
+    SubtractSet( todo, orbit );
+    tmp := tmp - Size( todo );
+    Print( "-", tmp, ", " );
+    Add( orbs, orbit );
+    #Print( Size( todo ), " " ); #DEBUG
+  od;
+  Print( "orbs ", Length( orbs ), "\n" );
   return orbs;
 end;
 
 ###############################
-# function MyOrbits2
+# function hashTableNumberOfOrbits
 # Input:
 #   D -
 #
 # Output:
 #   res
 ###############################
-MyOrbits2 := function( D )
-#function( G, D, gens, acts, act )
-local   orbs, orb,sort,plist,pos,use,o,nc,ld,ld1;
-  sort:=Length(D)>0 and CanEasilySortElements(D[1]);
-  plist:=IsPlistRep(D);
-  if not plist then
-    use:=BlistList([1..Length(D)],[]);
+hashTableNumberOfOrbits := function( omega, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains )
+  local   encode, decode, canonization, todo, domainSize, numberOrbits, orbitLengths,
+    args, debug, bench_oldSize, res,
+    m0, code, orbit, pos;
+  _SERSI.encodeFunction( numberProcessors, numberTasks );
+  _SERSI.decodeFunction( numberProcessors, numberTasks );
+  encode := _SERSI.C.encode;
+  decode := _SERSI.C.decode;
+  canonization := _SERSI.C.canonization;
+  InstallMethod( PARORB_HashFunction, "for tuples represented as lists",
+  [ IsList ],
+  _SERSI.C.encode );
+  todo := ShallowCopy( omega );
+  if not IsSet( todo ) then
+    Error( "omega must be a set!" );
   fi;
-  ld1:=Length(D);
-  orbs := [  ];
-  pos:=1;
-  while Length(D)>0  and pos<=Length(D) do
-    #TODO
-    orb := hashTableOrbit( TrivialGroup(), D[pos], rec( andres := "" ) );
-    # orb := OrbitOp( G,D[pos], gens, acts, act );
-    Add( orbs, orb );
-    if plist then
-      ld:=Length(D);
-      Print(ld, " ");
-      if sort then
-        D:=Difference(D,orb);
-        MakeImmutable(D); # to remember sortedness
-      else
-        D:=Filtered(D,i-> not i in orb);
-      fi;
-    else
-      for o in orb do
-        use[PositionCanonical(D,o)]:=true;
-      od;
-      # not plist -- do not take difference as there may be special
-      # `PositionCanonical' method.
-      while pos<=Length(D) and use[pos] do
-        pos:=pos+1;
-      od;
+  todo := Set( List( todo, canonization ) );
+  Sort( todo );
+  Print( "maps ", Size( todo ), " \n" );
+  numberOrbits := 0;
+  orbitLengths := [];
+  args := [  , numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains ];
+
+  while Size( todo ) > 0 do
+    args[1] := todo[1];
+    orbit := Set( CallFuncList( hashTableGroupoidOnMappingsOrbit, args ) );
+    numberOrbits := numberOrbits + 1;
+    Add( orbitLengths, Length( orbit ) );
+    debug := Size( todo );
+    bench_oldSize := Size( todo );
+    SubtractSet( todo, orbit );
+    debug := debug - Size( todo );
+    #TODO use Info
+    #Print( "-", debug, ", " );
+    if bench_oldSize mod 5 < Size( todo ) mod 5 then
+      #Print( "\n" );
     fi;
   od;
-  return Immutable( orbs );
+  res := rec(
+    sizeOmega    := Length( omega ),
+    numberOrbits := numberOrbits,
+    orbitLengths := SortedList( orbitLengths ),
+    percentageSimulated := Sum( orbitLengths ) / numberProcessors ^ numberTasks * 100.
+  );
+  Print( "orbs ", res.numberOrbits, "\n" ); #DEBUG
+  #TODO use Info
+  #Print( res, "\n" ); #DEBUG
+  return res;
 end;
