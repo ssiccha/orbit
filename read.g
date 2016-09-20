@@ -10,6 +10,7 @@
 ##
 #############################################################################
 
+LoadPackage("IO");
 Read("init.g");
 if not IsBound( HashTableType ) then
   Read("hash.gd");
