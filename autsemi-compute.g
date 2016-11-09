@@ -118,9 +118,9 @@ ComputeAutSemigroup4 := function( startGens )
   local i, x, G, gens, hasGrown;
   hasGrown := false;
   gens := ShallowCopy( startGens );
-  G := Semigroup( gens );
+  G := InverseSemigroup( gens );
   i := 0;
-  for x in SymmetricInverseSemigroup(9) do
+  for x in SymmetricInverseSemigroup(16) do
     i := i+1;
     ## for every 100k checked partial perms, we look for a smaller generating set of G
     ## if a new generator was added to gens
