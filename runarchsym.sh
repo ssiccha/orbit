@@ -6,7 +6,7 @@ if [ "$#" != "3" ]; then
 fi;
 
 gap -o 50g -L ~/.gap/emptyWorkspace -r -b -q << EOI
-Read("read.g");
+Read("gap/read.g");
 tmp := GET_REAL_TIME_OF_FUNCTION_CALL( wrapperForExamples, [ "$1", "$2", "$3" ], rec( passResult := true ) );;
 res := tmp.result;;
 t := tmp.time;;
