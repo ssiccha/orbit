@@ -1,18 +1,24 @@
-Read("./autsemi-examples.g");
-
 ## How to get reps for orbits
-partition4 := function()
-  local G, orb, scc, repsPositions, reps;
-  G := InverseSemigroup( autGens4 );
-  orb := Orb( G, [1..16], OnSets, rec( orbitgraph := true ) );
-  scc := OrbSCC( orb );
-  repsPositions := List( scc, x -> x[1] );
+partition := function( graph, G )
+  local orb, stronglyConnectedComponents, repsPositions, reps, repsGraphs, repsGraphsConnected, repsConnected, sizes, sizesConnected;
+  orb := Orb( G, Vertices( graph ), OnSets, rec( orbitgraph := true ) );
+  stronglyConnectedComponents := OrbSCC( orb );
+  repsPositions := List( stronglyConnectedComponents, x -> x[1] );
   reps := orb{ repsPositions };
+  repsGraphs := List( repsVertices, x -> InducedSubgraph( graph, x ) );
+  repsGraphsConnected := Filtered( repsGraphs, IsConnectedGraph );
+  repsConnected := List( repsGraphsConnected, Vertices );
+  sizes := Collected( List( reps, Length ) );
+  sizesConnected := Collected( List( repsConnected, Length ) );
+
   return rec(
     orb := orb,
-    scc := scc,
+    scc := stronglyConnectedComponents,
     repsPositions := repsPositions,
-    reps := reps
+    reps := reps,
+    repsConnected := repsConnected,
+    sizes := sizes,
+    sizesConnected := sizesConnected
   );
 end;
 
