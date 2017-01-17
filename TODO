@@ -1,0 +1,10 @@
+Given: List of mappings
+
+For each mapping:
+if not in any orbit yet
+    compute orbit
+    put into list of representatives
+else
+    put into list of doubles
+    remember which rep it is isom to
+fi
