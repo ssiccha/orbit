@@ -6,23 +6,21 @@
 ##
 ##  Copyright...
 ##
-##  Read all *.g and *.gi files.
+##  Read all *.g, *.gi and *.gd files.
 ##
 #############################################################################
 
 LoadPackage("IO");
 Read("init.g");
 if not IsBound( HashTableType ) then
-  Read("hash.gd");
+  Read("data-structures/hash.gd");
 fi;
-Read("hash.gi");
+Read("data-structures/hash.gi");
 if not IsBound( StackType ) then
-  Read("stack.gd");
+  Read("data-structures/stack.gd");
 fi;
-Read("stack.gi");
-Read("canonization.g");
+Read("data-structures/stack.gi");
+
 Read("orbit.g");
 Read("parse.g");
 Read("examples.g");
-
-Read("../utils.g");
