@@ -1,22 +1,23 @@
-## creates bit-encoding function and stores it in _SERSI.C.encode
-_SERSI.encodeFunction := function( numberProcessors, numberTasks )
-  local encode, n, m;
-  n := ShallowCopy( numberProcessors );
-  m := ShallowCopy( numberTasks );
-  encode := function( tup )
+## Creates bit-encoding function and returns it.
+## Encodes tuples with m entries, each in 1..n.
+## n = numberProcessors;
+## m = numberTasks;
+CreateEncodeFunction := function( n, m )
+  local encode;
+  encode := function( tuple )
     return
       (
         List( [ 1 .. m ], i -> n^(m-i) )
         *
-        ( tup - 1 )
+        ( tuple - 1 )
       )
       + 1;
   end;
-  _SERSI.C.encode := encode;
+  return encode;
 end;
 
-## creates bit-decoding function and stores it in _SERSI.C.decode
-_SERSI.decodeFunction := function( numberProcessors, numberTasks )
+## creates bit-decoding function and returns it.
+CreateDecodeFunction := function( numberProcessors, numberTasks )
   local decode, i, n, m;
   n := ShallowCopy( numberProcessors );
   m := ShallowCopy( numberTasks );
