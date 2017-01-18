@@ -59,64 +59,6 @@ hashTableGroupoidOnMappingsOrbit := function( m0, numberProcessors, numberTasks,
 end;
 
 ###############################
-# function bitListGroupoidOnMappingsOrbit
-# Input:
-#   partialIsos
-#   domains
-#   omega
-#
-# Uses a Bitlist to keep track of the orbit
-#
-# Output:
-#   A record with
-#     bitlist for m0 * G
-#     list m0 * G
-#     words in generators for debugging
-###############################
-bitListGroupoidOnMappingsOrbit := function( m0, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains, options... )
-  local encode, r, s, orbit, domainSize, words, bitList, m, i, posx, x;
-  if Length( options ) = 1 then
-    options := options[1];
-  fi;
-
-  # function that determines a mapping's position in the bitList
-  encode := _SERSI.C.encode;
-
-  orbit := [ m0 ];
-  domainSize := numberProcessors ^ numberTasks;
-  words := [ [] ];
-
-  bitList := BlistList( [ 1 .. domainSize ], [] );
-  bitList[ encode( m0 ) ] := true;
-  for m in orbit do
-    posx := Position( orbit, m );
-    for i in [ 1 .. Length( gensOfAutKPN ) ] do
-      ## KPN automorphisms
-      x := Permuted( m, gensOfAutKPN[ i ] );
-      if not bitList[ encode( x ) ] then
-        Add( orbit, x );
-        bitList[ encode( x ) ] := true;
-        #Add( words, Concatenation( words[posx], [ i ] ) );
-      fi;
-    od;
-    for i in [ 1 .. Length( gensOfGroupoid ) ] do
-      ## Architecture partial Isomorphisms
-      x := fail;
-      if IsSubset( domains[i], m ) then
-        x := OnTuples( m, gensOfGroupoid[i] );
-        if not bitList[ encode( x ) ] then
-          Add( orbit, x );
-          bitList[ encode( x ) ] := true;
-          Add( words, Concatenation( words[posx], [ i ] ) );
-        fi;
-      fi;
-    od;
-  od;
-  return rec( bitList := bitList, orb := orbit, words := words );
-end;
-
-
-###############################
 # function hashTableOrbit
 # Input:
 #   G  - Group acting on M
