@@ -1,1 +1,4 @@
 .nfs*
+data
+not_mandel_data
+results
