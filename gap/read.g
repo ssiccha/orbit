@@ -22,6 +22,7 @@ if not IsBound( StackType ) then
 fi;
 Read("data-structures/stack.gi");
 
+Read("canonization.g");
 Read("orbit.g");
 Read("parse.g");
 Read("examples.g");
