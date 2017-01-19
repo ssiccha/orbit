@@ -1,6 +1,6 @@
 #############################################################################
 ##
-##                             parorb package
+##                        Orbits of mappings package
 ##  read.g
 ##                                                          Sergio Siccha
 ##
@@ -12,6 +12,7 @@
 
 LoadPackage("IO");
 Read("init.g");
+Read("data-structures/encode.g");
 if not IsBound( HashTableType ) then
   Read("data-structures/hash.gd");
 fi;

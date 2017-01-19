@@ -1,3 +1,4 @@
+## TODO WHICH OF THESE HAVE TO GO? ##
 ## GLOBAL VARIABLES / FUNCTIONS ##
 _SERSI := rec ();
 _SERSI.C := rec();

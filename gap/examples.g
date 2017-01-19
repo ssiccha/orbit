@@ -43,17 +43,19 @@ wrapperForExamples := function( KPNString, ArchitectureString, data )
   elif KPNString = "sobel" then
     numberTasks := 5;
     gensOfAutKPN := [ (2,3) ];
-  fi;
-  if Size( KPNString ) >= 10 then
-    if KPNString{ [ 1 .. 10 ] } = "mandelbrot" then
+  elif Size( KPNString ) >= 10
+    and KPNString{ [ 1 .. 10 ] } = "mandelbrot" then
       ## "mandelbrot_njobs"
       lastPos := Position( KPNString, 'j' ) - 1;
       numberTasks := Int( KPNString{ [ 12 .. lastPos ] } ) + 2;
       ## Symmetric Group on the first numberTasks - 2 points
       ##gensOfAutKPN := List( [ 1 .. numberTasks-3 ], i -> (i,i+1) );
-      ## The action on the KPN will be handled completely by the canonization function
+      ## The action on the KPN will be handled completely
+      ## by the canonization function
+      #### TODO: Does that work correctly? ####
       gensOfAutKPN := [];
-    fi;
+  else
+    Error("Wrong KPN string!");
   fi;
   _SERSI.C.truncateAt := numberTasks;
 
