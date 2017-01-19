@@ -13,7 +13,7 @@
 
 wrapperForExamples := function( KPNString, ArchitectureString, data )
   local res, args, lastPos, numberProcessors,
-      numberTasks, gensOfAutKPN, gensOfGroupoid,
+      numberTasks, gensOfAutKPN, gensOfAutSemiArch,
       domains, omega;
   omega := [];
   ## Unused code went to ./deprecated/examples.g
@@ -59,9 +59,10 @@ wrapperForExamples := function( KPNString, ArchitectureString, data )
   fi;
   _SERSI.C.truncateAt := numberTasks;
 
+  ########## DECIDE Architecture ##########
   if ArchitectureString = "s4xs8" then
     numberProcessors := 12;
-    gensOfGroupoid := [
+    gensOfAutSemiArch := [
       (1,2,3,4),
       (1,2),
       (5,6,7),
@@ -77,10 +78,9 @@ wrapperForExamples := function( KPNString, ArchitectureString, data )
       [1..12],
       [1..12]
     ];
-
   elif ArchitectureString = "s4" then
     numberProcessors := 4;
-    gensOfGroupoid := [
+    gensOfAutSemiArch := [
       (1,2,3,4),
       (1,2)
     ];
@@ -93,5 +93,12 @@ wrapperForExamples := function( KPNString, ArchitectureString, data )
   ## parse data and call MyOrbits
   simulatedMappings := parse( data );
   _SERSI.C.canonization := canonizationFunction( KPNString, numberTasks, ArchitectureString );
-  return hashTableNumberOfOrbits( simulatedMappings, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains );
+  return hashTableNumberOfOrbits(
+    simulatedMappings,
+    numberProcessors,
+    numberTasks,
+    gensOfAutKPN,
+    gensOfAutSemiArch,
+    domains
+  );
 end;

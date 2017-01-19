@@ -1,5 +1,5 @@
 ###############################
-# function hashTableGroupoidOnMappingsOrbit
+# function SemigroupOnMappings
 # Input:
 #   partialIsos
 #   domains
@@ -13,7 +13,7 @@
 #     list m0 * G
 #     words in generators for debugging
 ###############################
-hashTableGroupoidOnMappingsOrbit := function( m0, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains, options... )
+SemigroupOnMappings := function( m0, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains, options... )
   local encode, canonization, r, s, stack, hashTable, m, i, posx, x, bench_stack;
   if Length( options ) = 1 then
     options := options[1];
@@ -59,22 +59,27 @@ hashTableGroupoidOnMappingsOrbit := function( m0, numberProcessors, numberTasks,
 end;
 
 ###############################
-# function hashTableNumberOfOrbits
+# function NumberOfOrbits
 # Input:
-#   D -
-#
+#   omega -
+#   numberProcessors -
+#   numberTasks -
+#   gensOfAutKPN -
+#   gensOfGroupoid -
+#   domains -
+#   canonization -
 # Output:
 #   res
 ###############################
-hashTableNumberOfOrbits := function( omega, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains )
-  local   encode, decode, canonization, unprocessed, domainSize, numberOrbits, orbitLengths,
+NumberOfOrbits := function( omega, numberProcessors, numberTasks,
+        gensOfAutKPN, gensOfGroupoid, domains, canonization )
+  local   encode, decode, unprocessed, domainSize, numberOrbits, orbitLengths,
     args, debug, bench_oldSize, res,
     m0, code, orbit, pos;
-  _SERSI.encodeFunction( numberProcessors, numberTasks );
-  _SERSI.decodeFunction( numberProcessors, numberTasks );
-  encode := _SERSI.C.encode;
-  decode := _SERSI.C.decode;
-  canonization := _SERSI.C.canonization;
+
+  encode := CreateEncodeFunction( numberProcessors, numberTasks );
+  decode := CreateDecodeFunction( numberProcessors, numberTasks );
+  ## TODO V get rid of this V
   InstallMethod( PARORB_HashFunction, "for tuples represented as lists",
   [ IsList ],
   _SERSI.C.encode );
@@ -91,7 +96,7 @@ hashTableNumberOfOrbits := function( omega, numberProcessors, numberTasks, gensO
 
   while Size( unprocessed ) > 0 do
     args[1] := unprocessed[1];
-    orbit := Set( CallFuncList( hashTableGroupoidOnMappingsOrbit, args ) );
+    orbit := Set( CallFuncList( SemigroupOnMappings, args ) );
     numberOrbits := numberOrbits + 1;
     Add( orbitLengths, Length( orbit ) );
     debug := Size( unprocessed );
@@ -115,3 +120,4 @@ hashTableNumberOfOrbits := function( omega, numberProcessors, numberTasks, gensO
   #Print( res, "\n" ); #DEBUG
   return res;
 end;
+

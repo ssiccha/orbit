@@ -18,7 +18,7 @@
 # Output:
 #   x
 ###############################
-canonizationFunction := function( KPNString, numberTasks, ArchitectureString )
+CreateCanonizationFunction := function( KPNString, numberTasks, ArchitectureString )
   local canonization, KPNCanonization, ArchitectureCanonization;
 
   if KPNString = "audio_filter" then
