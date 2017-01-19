@@ -270,45 +270,6 @@ hashTableOrbit := function(G, m0, options...)
   Error( "operation not yet supported!\n" );
 end;
 
-###############################
-# function bitListMyOrbits
-# Input:
-#   D -
-#
-# Output:
-#   res
-###############################
-bitListMyOrbits := function( omega, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains )
-  local   encode, decode, todo, domainSize, orbs, args,
-    m0, code, orb, pos, res, tmp;
-  _SERSI.encodeFunction( numberProcessors, numberTasks );
-  _SERSI.decodeFunction( numberProcessors, numberTasks );
-  encode := _SERSI.C.encode;
-  decode := _SERSI.C.decode;
-
-  domainSize := numberProcessors ^ numberTasks;
-  todo := List( omega, encode );
-  #Print( Size( todo ), " " );
-  todo := BlistList( [ 1 .. domainSize ], todo );
-  Print( "maps ", SizeBlist( todo ), " \n" );
-  orbs := [];
-  args := [  , numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains ];
-  while SizeBlist( todo ) > 0 do
-    code := Position( todo, true );
-    args[1] := decode( code );
-    res := CallFuncList( bitListGroupoidOnMappingsOrbit, args );
-    #Print( SizeBlist( todo ), " " );
-    tmp := SizeBlist( todo );
-    SubtractBlist( todo, res.bitList );
-    tmp := tmp - SizeBlist( todo );
-    Print( "-", tmp, ", \n" );
-    Add( orbs, res.orb );
-    #Print( SizeBlist( todo ), " " ); #DEBUG
-  od;
-  Print( "orbs ", Length( orbs ), "\n" );
-  return orbs;
-end;
-
 #   DEBUG
 #   for orb in orbs do
 #      if not Intersection( orb, res.orb ) = [] then
