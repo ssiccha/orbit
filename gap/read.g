@@ -14,11 +14,11 @@ LoadPackage("IO");
 Read("init.g");
 Read("data-structures/encode.g");
 if not IsBound( HashTableType ) then
-  Read("data-structures/hash.gd");
+    Read("data-structures/hash.gd");
 fi;
 Read("data-structures/hash.gi");
 if not IsBound( StackType ) then
-  Read("data-structures/stack.gd");
+    Read("data-structures/stack.gd");
 fi;
 Read("data-structures/stack.gi");
 
