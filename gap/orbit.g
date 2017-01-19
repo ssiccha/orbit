@@ -71,7 +71,7 @@ end;
 ###############################
 hashTableOrbit := function(G, m0, options...)
   local gens, domains, r, L, largestMovedPoint, bitTable, bitList, x, opt, hTable, current, m, newPoint, i, action,
-    todo, domainSize, words, posx;
+    unprocessed, domainSize, words, posx;
   gens := GeneratorsOfGroup(G);
   r := Length( gens );
   if Length( options ) = 1 then
@@ -325,7 +325,7 @@ end;
 #   res
 ###############################
 hashTableMyOrbits := function( omega, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains )
-  local   encode, decode, todo, domainSize, orbs, args,
+  local   encode, decode, unprocessed, domainSize, orbs, args,
     m0, code, orbit, pos, res, tmp;
   _SERSI.encodeFunction( numberProcessors, numberTasks );
   _SERSI.decodeFunction( numberProcessors, numberTasks );
@@ -337,22 +337,22 @@ hashTableMyOrbits := function( omega, numberProcessors, numberTasks, gensOfAutKP
   _SERSI.C.encode );
 
   domainSize := numberProcessors ^ numberTasks;
-  todo := ShallowCopy( omega );
-  if not IsSet( todo ) then
+  unprocessed := ShallowCopy( omega );
+  if not IsSet( unprocessed ) then
     Error( "omega must be a set!" );
   fi;
-  Print( "maps ", Size( todo ), " \n" );
+  Print( "maps ", Size( unprocessed ), " \n" );
   orbs := [];
   args := [  , numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains ];
-  while Size( todo ) > 0 do
-    args[1] := todo[1];
+  while Size( unprocessed ) > 0 do
+    args[1] := unprocessed[1];
     orbit := Set( CallFuncList( hashTableGroupoidOnMappingsOrbit, args ) );
-    tmp := Size( todo );
-    SubtractSet( todo, orbit );
-    tmp := tmp - Size( todo );
+    tmp := Size( unprocessed );
+    SubtractSet( unprocessed, orbit );
+    tmp := tmp - Size( unprocessed );
     Print( "-", tmp, ", " );
     Add( orbs, orbit );
-    #Print( Size( todo ), " " ); #DEBUG
+    #Print( Size( unprocessed ), " " ); #DEBUG
   od;
   Print( "orbs ", Length( orbs ), "\n" );
   return orbs;
@@ -367,7 +367,7 @@ end;
 #   res
 ###############################
 hashTableNumberOfOrbits := function( omega, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains )
-  local   encode, decode, canonization, todo, domainSize, numberOrbits, orbitLengths,
+  local   encode, decode, canonization, unprocessed, domainSize, numberOrbits, orbitLengths,
     args, debug, bench_oldSize, res,
     m0, code, orbit, pos;
   _SERSI.encodeFunction( numberProcessors, numberTasks );
@@ -378,29 +378,29 @@ hashTableNumberOfOrbits := function( omega, numberProcessors, numberTasks, gensO
   InstallMethod( PARORB_HashFunction, "for tuples represented as lists",
   [ IsList ],
   _SERSI.C.encode );
-  todo := ShallowCopy( omega );
-  if not IsSet( todo ) then
+  unprocessed := ShallowCopy( omega );
+  if not IsSet( unprocessed ) then
     Error( "omega must be a set!" );
   fi;
-  todo := Set( List( todo, canonization ) );
-  Sort( todo );
-  Print( "maps ", Size( todo ), " \n" );
+  unprocessed := Set( List( unprocessed, canonization ) );
+  Sort( unprocessed );
+  Print( "maps ", Size( unprocessed ), " \n" );
   numberOrbits := 0;
   orbitLengths := [];
   args := [  , numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains ];
 
-  while Size( todo ) > 0 do
-    args[1] := todo[1];
+  while Size( unprocessed ) > 0 do
+    args[1] := unprocessed[1];
     orbit := Set( CallFuncList( hashTableGroupoidOnMappingsOrbit, args ) );
     numberOrbits := numberOrbits + 1;
     Add( orbitLengths, Length( orbit ) );
-    debug := Size( todo );
-    bench_oldSize := Size( todo );
-    SubtractSet( todo, orbit );
-    debug := debug - Size( todo );
+    debug := Size( unprocessed );
+    bench_oldSize := Size( unprocessed );
+    SubtractSet( unprocessed, orbit );
+    debug := debug - Size( unprocessed );
     #TODO use Info
     #Print( "-", debug, ", " );
-    if bench_oldSize mod 5 < Size( todo ) mod 5 then
+    if bench_oldSize mod 5 < Size( unprocessed ) mod 5 then
       #Print( "\n" );
     fi;
   od;

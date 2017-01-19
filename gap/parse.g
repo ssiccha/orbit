@@ -11,12 +11,12 @@
 #############################################################################
 
 parse := function( data )
-  local simulatedMappings, folder, startsWithZero, inStream, buf, m;
+  local mappings, folder, startsWithZero, inStream, buf, m;
   folder := "data/";
   startsWithZero := true;
 
   inStream := InputTextFile( Concatenation( folder, data ) );
-  simulatedMappings := [];
+  mappings := [];
 
   buf := ReadLine( inStream );
   while not IsEndOfStream( inStream ) do
@@ -32,11 +32,11 @@ parse := function( data )
       if startsWithZero then
         m := m + 1;
       fi;
-      simulatedMappings[ Length( simulatedMappings ) + 1 ] := m;
+      mappings[ Length( mappings ) + 1 ] := m;
     fi;
     buf := ReadLine( inStream );
   od;
   CloseStream( inStream );
-  simulatedMappings := Set( simulatedMappings );
-  return simulatedMappings;
+  mappings := Set( mappings );
+  return mappings;
 end;
