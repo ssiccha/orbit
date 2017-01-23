@@ -12,10 +12,15 @@
 #############################################################################
 
 ### Proof of Concept code ###
-## TODO test this in HPCGAP non-main thread
 LoadPackage("IO");
-## Use `mkfifo pipe-test` to create named pipe
-pipe := IO_open( "pipe-test", IO.O_RDWR, 0 );
-## 2^16 corresponds to the default buffer size
-pipe := IO_WrapFD( pipe, 2^16, 2^16 );
-IO_ReadLine( pipe );
+## HPCGAP: Transfer IO record to the public region.
+MakeImmutable( IO );
+OpenPipe := function( pipeFilename )
+    local pipe;
+    ## Use `mkfifo pipe-test` to create named pipe
+    pipe := IO_open( "pipe-test", IO.O_RDWR, 0 );
+    ## 2^16 corresponds to the default buffer size
+    pipe := IO_WrapFD( pipe, 2^16, 2^16 );
+    return pipe;
+end;
+#IO_ReadLine( pipe );
