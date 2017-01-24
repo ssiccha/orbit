@@ -3,8 +3,31 @@
 
 ###############################
 # Operation HashTableCreate
+# Wrapper for the 2-argument version
 # Input:
-#   tupleDimensions
+#   tupleDimensions - record with components
+#       base
+#       exp
+# Filters:
+#   IsObject
+#
+# Output:
+#   A hashTable
+###############################
+InstallMethod( HashTableCreate,
+"for a tupleDimensions record",
+[ IsRecord ],
+function( tupleDimensions )
+    return HashTableCreate( tupleDimensions, rec() );
+end );
+
+
+###############################
+# Operation HashTableCreate
+# Input:
+#   tupleDimensions - record with components
+#       base
+#       exp
 #   opt - Options record
 # Filters:
 #   IsObject, IsRecord
@@ -13,14 +36,14 @@
 #   A hashTable
 ###############################
 InstallMethod( HashTableCreate,
-"for an object and an options record",
-[ IsObject, IsRecord ],
-function( tupleDimensions, opt )
+"for a tupleDimensions record and an options record",
+[ IsRecord, IsRecord ],
+function( tupleDimensions, options )
     local hashTable, type;
     hashTable := rec();
     type := HashTableType;
-    if IsBound(opt.length) then
-        hashTable.length := NextPrimeInt(opt.length);
+    if IsBound(options.length) then
+        hashTable.length := NextPrimeInt(options.length);
     else
         hashTable.length := 100003;
     fi;
@@ -32,8 +55,8 @@ function( tupleDimensions, opt )
     # during its creation.
     hashTable.hashFunction :=
         CreateEncodeFunction(
-            tupleDimensions[1],
-            tupleDimensions[2]
+            tupleDimensions.base,
+            tupleDimensions.exp
         );
     Objectify( type, hashTable );
     return hashTable;
@@ -75,7 +98,7 @@ InstallMethod( HashTableAdd, "for an object",
 [ IsMyHashTable, IsObject ],
 function( ht, x )
     local hashValue;
-    hashValue := ht.hashFunction( x ) mod ht!.length + 1;
+    hashValue := ht!.hashFunction( x ) mod ht!.length + 1;
     if not IsBound( ht!.elements[ hashValue ] ) then
         ht!.elements[ hashValue ] := [ x ];
         return true;

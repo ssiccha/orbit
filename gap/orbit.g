@@ -13,17 +13,29 @@
 #     list m0 * G
 #     words in generators for debugging
 ###############################
-SemigroupOnMappings := function( m0, numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains, options... )
-  local encode, canonization, r, s, stack, hashTable, m, i, posx, x, bench_stack;
+SemigroupOnMappings := function( m0, KPNArchitectureData, options... )
+  local numberProcessors, numberTasks, gensOfAutKPN,
+  gensOfAutSemiArch, domains, canonization,
+  stack, hashTable, bench_stack, m, x, i;
+
+  numberProcessors := KPNArchitectureData.numberProcessors;
+  numberTasks := KPNArchitectureData.numberTasks;
+  gensOfAutKPN := KPNArchitectureData.gensOfAutKPN;
+  gensOfAutSemiArch := KPNArchitectureData.gensOfAutSemiArch;
+  domains := KPNArchitectureData.domains;
+  canonization := KPNArchitectureData.canonization;
+
   if Length( options ) = 1 then
     options := options[1];
   fi;
 
-  canonization := _SERSI.C.canonization;
   m0 := canonization( m0 );
   stack := StackCreate( 10^6 );
   StackPush( stack, m0 );
-  hashTable := HashTableCreate( m0, rec( length := 10^5 ) );
+  ## There are p^t many mappings, t = #tasks, p = #processors
+  hashTable := HashTableCreate(
+    rec( base := numberProcessors, exp := numberTasks )
+  );
   bench_stack := false;
 
   #DEBUG words := [ [] ];
@@ -44,10 +56,10 @@ SemigroupOnMappings := function( m0, numberProcessors, numberTasks, gensOfAutKPN
         StackPush( stack, x );
       fi;
     od;
-    for i in [ 1 .. Length( gensOfGroupoid ) ] do
+    for i in [ 1 .. Length( gensOfAutSemiArch ) ] do
       ## Architecture partial Isomorphisms
       if IsSubset( domains[i], m ) then
-        x := canonization( OnTuples( m, gensOfGroupoid[i] ) );
+        x := canonization( OnTuples( m, gensOfAutSemiArch[i] ) );
         if HashTableAdd( hashTable, x ) then
           StackPush( stack, x );
         fi;
@@ -66,28 +78,26 @@ end;
 #       numberProcessors -
 #       numberTasks -
 #       gensOfAutKPN -
-#       gensOfGroupoid -
+#       gensOfAutSemiArch -
 #       domains -
 #       canonization -
 # Output:
 #   res
 ###############################
+## TODO CLEANUP !! ##
 NumberOfOrbits := function( simulatedMappings, KPNArchitectureData )
-  local numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains, canonization, encode, decode, unprocessed, numberOrbits, orbitLengths, args, orbit, debug, bench_oldSize, res, percentageSimulated;
+  local numberProcessors, numberTasks, gensOfAutKPN, gensOfAutSemiArch, domains, canonization, encode, decode, unprocessed, numberOrbits, orbitLengths, args, orbit, debug, bench_oldSize, res, percentageSimulated;
 
   numberProcessors := KPNArchitectureData.numberProcessors;
   numberTasks := KPNArchitectureData.numberTasks;
   gensOfAutKPN := KPNArchitectureData.gensOfAutKPN;
-  gensOfGroupoid := KPNArchitectureData.gensOfGroupoid;
+  gensOfAutSemiArch := KPNArchitectureData.gensOfAutSemiArch;
   domains := KPNArchitectureData.domains;
   canonization := KPNArchitectureData.canonization;
 
   encode := CreateEncodeFunction( numberProcessors, numberTasks );
   decode := CreateDecodeFunction( numberProcessors, numberTasks );
-  ## TODO V get rid of this V
-  InstallMethod( PARORB_HashFunction, "for tuples represented as lists",
-  [ IsList ],
-  _SERSI.C.encode );
+  ## TODO When and how is HashTableCreate called?
   unprocessed := ShallowCopy( simulatedMappings );
   if not IsSet( unprocessed ) then
     Error( "simulatedMappings must be a set!" );
@@ -97,11 +107,9 @@ NumberOfOrbits := function( simulatedMappings, KPNArchitectureData )
   Print( "maps ", Size( unprocessed ), " \n" );
   numberOrbits := 0;
   orbitLengths := [];
-  args := [  , numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains ];
 
   while Size( unprocessed ) > 0 do
-    args[1] := unprocessed[1];
-    orbit := Set( CallFuncList( SemigroupOnMappings, args ) );
+    orbit := Set( SemigroupOnMappings( unprocessed[1], KPNArchitectureData ) );
     numberOrbits := numberOrbits + 1;
     Add( orbitLengths, Length( orbit ) );
     debug := Size( unprocessed );
@@ -118,6 +126,7 @@ NumberOfOrbits := function( simulatedMappings, KPNArchitectureData )
     sizeSimulatedMappings    := Length( simulatedMappings ),
     numberOrbits := numberOrbits,
     orbitLengths := SortedList( orbitLengths ),
+    sizeOmega := Sum( orbitLengths ),
     percentageSimulated := Sum( orbitLengths ) / numberProcessors ^ numberTasks * 100.
   );
   Print( "orbs ", res.numberOrbits, "\n" ); #DEBUG
@@ -125,4 +134,3 @@ NumberOfOrbits := function( simulatedMappings, KPNArchitectureData )
   #Print( res, "\n" ); #DEBUG
   return res;
 end;
-
