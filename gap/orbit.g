@@ -61,21 +61,26 @@ end;
 ###############################
 # function NumberOfOrbits
 # Input:
-#   omega -
-#   numberProcessors -
-#   numberTasks -
-#   gensOfAutKPN -
-#   gensOfGroupoid -
-#   domains -
-#   canonization -
+#   simulatedMappings -
+#   KPNArchitectureData - contains:
+#       numberProcessors -
+#       numberTasks -
+#       gensOfAutKPN -
+#       gensOfGroupoid -
+#       domains -
+#       canonization -
 # Output:
 #   res
 ###############################
-NumberOfOrbits := function( omega, numberProcessors, numberTasks,
-        gensOfAutKPN, gensOfGroupoid, domains, canonization )
-  local   encode, decode, unprocessed, domainSize, numberOrbits, orbitLengths,
-    args, debug, bench_oldSize, res,
-    m0, code, orbit, pos;
+NumberOfOrbits := function( simulatedMappings, KPNArchitectureData )
+  local numberProcessors, numberTasks, gensOfAutKPN, gensOfGroupoid, domains, canonization, encode, decode, unprocessed, numberOrbits, orbitLengths, args, orbit, debug, bench_oldSize, res, percentageSimulated;
+
+  numberProcessors := KPNArchitectureData.numberProcessors;
+  numberTasks := KPNArchitectureData.numberTasks;
+  gensOfAutKPN := KPNArchitectureData.gensOfAutKPN;
+  gensOfGroupoid := KPNArchitectureData.gensOfGroupoid;
+  domains := KPNArchitectureData.domains;
+  canonization := KPNArchitectureData.canonization;
 
   encode := CreateEncodeFunction( numberProcessors, numberTasks );
   decode := CreateDecodeFunction( numberProcessors, numberTasks );
@@ -83,9 +88,9 @@ NumberOfOrbits := function( omega, numberProcessors, numberTasks,
   InstallMethod( PARORB_HashFunction, "for tuples represented as lists",
   [ IsList ],
   _SERSI.C.encode );
-  unprocessed := ShallowCopy( omega );
+  unprocessed := ShallowCopy( simulatedMappings );
   if not IsSet( unprocessed ) then
-    Error( "omega must be a set!" );
+    Error( "simulatedMappings must be a set!" );
   fi;
   unprocessed := Set( List( unprocessed, canonization ) );
   Sort( unprocessed );
@@ -110,7 +115,7 @@ NumberOfOrbits := function( omega, numberProcessors, numberTasks,
     fi;
   od;
   res := rec(
-    sizeOmega    := Length( omega ),
+    sizeSimulatedMappings    := Length( simulatedMappings ),
     numberOrbits := numberOrbits,
     orbitLengths := SortedList( orbitLengths ),
     percentageSimulated := Sum( orbitLengths ) / numberProcessors ^ numberTasks * 100.

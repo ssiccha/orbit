@@ -1,7 +1,7 @@
 #############################################################################
 ##
 ##                             orbit package
-##  test.g
+##  parse-KPN-architecture.g
 ##                                                          Sergio Siccha
 ##
 ##  Copyright...
@@ -11,7 +11,7 @@
 #############################################################################
 ## Benchmarking and testing of hashTableOrbit
 
-wrapperForExamples := function( KPNString, ArchitectureString, data )
+ParseKPNArchitecture := function( KPNString, ArchitectureString )
     local res, args, lastPos, numberProcessors,
     numberTasks, gensOfAutKPN, gensOfAutSemiArch,
     domains, omega, truncateAt;
@@ -90,21 +90,19 @@ wrapperForExamples := function( KPNString, ArchitectureString, data )
         ];
     fi;
 
-    ## parse data and call MyOrbits
-    simulatedMappings := parse( data, truncateAt );
     ## TODO Pass action to orbit function instead of canonization etc
     canonization := CreateCanonizationFunction(
         KPNString,
         numberTasks,
         ArchitectureString
     );
-    return NumberOfOrbits(
-        simulatedMappings,
-        numberProcessors,
-        numberTasks,
-        gensOfAutKPN,
-        gensOfAutSemiArch,
-        domains,
-        canonization
+    KPNArchitectureData := rec(
+        numberProcessors := numberProcessors,
+        numberTasks := numberTasks,
+        gensOfAutKPN := gensOfAutKPN,
+        gensOfAutSemiArch := gensOfAutSemiArch,
+        domains := domains,
+        canonization := canonization
     );
+    return KPNArchitectureData;
 end;

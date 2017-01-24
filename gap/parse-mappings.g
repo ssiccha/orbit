@@ -1,7 +1,7 @@
 #############################################################################
 ##
 ##                              package
-##  parse.g
+##  parse-mappings.g
 ##                                                          Sergio Siccha
 ##
 ##  Copyright...
@@ -10,7 +10,7 @@
 ##
 #############################################################################
 
-parse := function( data, opt... )
+ParseMappings := function( data, opt... )
     local mappings, folder, startsWithZero, inStream, buf, m;
     if Length(opt) = 1 then
         truncateAt := opt[1];
