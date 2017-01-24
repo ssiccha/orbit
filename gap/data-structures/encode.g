@@ -33,5 +33,5 @@ CreateDecodeFunction := function( numberProcessors, numberTasks )
     tup := tup + 1;
     return tup;
   end;
-  _SERSI.C.decode := decode;
+  return decode;
 end;
