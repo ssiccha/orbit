@@ -11,7 +11,6 @@
 #############################################################################
 
 LoadPackage("IO");
-Read("init.g");
 Read("data-structures/encode.g");
 if not IsBound( HashTableType ) then
     Read("data-structures/hash.gd");

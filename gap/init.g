@@ -1,2 +1,0 @@
-simulatedMappings := [];
-data := "";
