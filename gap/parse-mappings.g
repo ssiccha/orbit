@@ -17,7 +17,7 @@ ParseMappings := function( data, opt... )
     else
         truncateAt := false;
     fi;
-    folder := "data/";
+    folder := "../data/";
     startsWithZero := true;
 
     inStream := InputTextFile( Concatenation( folder, data ) );

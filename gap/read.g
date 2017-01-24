@@ -11,6 +11,7 @@
 #############################################################################
 
 LoadPackage("IO");
+Read("utils.g");
 Read("data-structures/encode.g");
 if not IsBound( HashTableType ) then
     Read("data-structures/hash.gd");
@@ -23,5 +24,6 @@ Read("data-structures/stack.gi");
 
 Read("canonization.g");
 Read("orbit.g");
-Read("parse.g");
-Read("examples.g");
+Read("parse-KPN-architecture.g");
+Read("parse-mappings.g");
+Read("mappings-cache-lookup.g");
