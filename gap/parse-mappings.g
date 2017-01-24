@@ -11,7 +11,7 @@
 #############################################################################
 
 ParseMappings := function( data, opt... )
-    local mappings, folder, startsWithZero, inStream, buf, m;
+    local truncateAt, folder, startsWithZero, inStream, mappings, buf, m;
     if Length(opt) = 1 then
         truncateAt := opt[1];
     else

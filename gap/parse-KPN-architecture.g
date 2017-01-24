@@ -12,10 +12,9 @@
 ## Benchmarking and testing of hashTableOrbit
 
 ParseKPNArchitecture := function( KPNString, ArchitectureString )
-    local res, args, lastPos, numberProcessors,
-    numberTasks, gensOfAutKPN, gensOfAutSemiArch,
-    domains, omega, truncateAt;
-    omega := [];
+    local numberTasks, gensOfAutKPN, lastPos, truncateAt,
+        numberProcessors, gensOfAutSemiArch, domains, canonization,
+        KPNArchitectureData;
     ## Unused code went to ./deprecated/examples.g
     ########## DECIDE KPN ##########
     if KPNString = "audio_filter_3" then
@@ -57,7 +56,6 @@ ParseKPNArchitecture := function( KPNString, ArchitectureString )
     else
         Error("Wrong KPN string!");
     fi;
-    truncateAt := numberTasks;
 
     ########## DECIDE Architecture ##########
     if ArchitectureString = "s4xs8" then
