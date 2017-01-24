@@ -1,31 +1,52 @@
 #!/bin/bash
+# test-suite.sh
 
-ARCH="s4xs8"
-APP="mjpeg_compaan"
-DATADIR="/home/sergio/gap/groupoid_orbit/data"
-OUTPUTDIR="/home/sergio/gap/groupoid_orbit/results"
-GAPDIR="/home/sergio/gap/groupoid_orbit"
-GAPSCRIPT="/home/sergio/gap/groupoid_orbit/runarchsym.sh"
+if [ "$#" != "2" ]; then
+    echo -en "Usage: \ttest-suite.sh <app-name> <arch-name>\n"
+    echo -en "app-name: \taudio_filter_3, jpeg, "
+    echo -en "mjpeg_compaan, sobel, mandelbrot\n"
+    echo -en "arch-name: \ts4, s4xs8\n"
+    exit 1
+fi;
 
-DATAFILES=`ls $DATADIR/${APP}.$ARCH*`
+APP="$1"
+ARCH="$2"
+PWD=`pwd`
+BASEDIR=${PWD%'/scripts'} # remove script directory
+DATADIR=${BASEDIR}"/data"
+OUTPUTDIR=${BASEDIR}"/results"
+GAPDIR=${BASEDIR}"/gap"
+GAPSCRIPT=${BASEDIR}"/scripts/runarchsym.sh"
+
+DATAFILES=""
+for file in `ls $DATADIR/${APP}.$ARCH*`; do
+    DATAFILES="${DATAFILES} ${file#$DATADIR/}"
+done
+echo "Running experiments for architecture ${ARCH} and"
+echo ${DATAFILES}
 
 #OUTPUTDIR=$OUTPUTDIR/results-`date +%F-%H-%M`
-OUTPUTDIR=$OUTPUTDIR/${APP}
+OUTPUTDIR=$OUTPUTDIR/${APP}--`date +%F--%H-%M`
 mkdir -p $OUTPUTDIR
 
 cd $GAPDIR/
 
 for file in $DATAFILES; do
-    outfile="$OUTPUTDIR/results${file#$DATADIR/${APP}.$ARCH}"
-    $GAPSCRIPT $APP $ARCH ${file#$DATADIR/} 2>$OUTPUTDIR/errors.txt > $outfile&
+    outfile="$OUTPUTDIR/results${file#${APP}.${ARCH}}"
+    ## DEBUG ##
+    #$GAPSCRIPT $APP $ARCH ${file#$DATADIR/}
+    #exit 1
+    ## DEBUG ##
+    $GAPSCRIPT $APP $ARCH ${file} 2>$OUTPUTDIR/errors.txt > $outfile&
 done
 
 wait
 
 for file in $DATAFILES; do
-    outfile="$OUTPUTDIR/results${file#$DATADIR/${APP}.$ARCH}"
-    echo "=========================" >> $OUTPUTDIR/allresults.txt
-    echo $file >> $OUTPUTDIR/allresults.txt
-    echo "-------------------------" >> $OUTPUTDIR/allresults.txt
-    tail -n 3 $outfile >> $OUTPUTDIR/allresults.txt
+    outfile="$OUTPUTDIR/results${file#${APP}.${ARCH}}"
+    allresults="$OUTPUTDIR/allresults.${APP}.${ARCH}.txt"
+    echo "=========================" >> $allresults
+    echo $file >> $allresults
+    echo "-------------------------" >> $allresults
+    tail -n 3 $outfile >> $allresults
 done
