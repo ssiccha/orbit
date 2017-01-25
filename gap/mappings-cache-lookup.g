@@ -46,7 +46,7 @@ MappingsCacheLookup := function(
         inStreamFilename,
         KPNArchitectureData.numberTasks
     );
-    return NumberOfOrbits(
+    return ManageOrbits(
         simulatedMappings,
         KPNArchitectureData
     );
