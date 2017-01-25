@@ -22,6 +22,11 @@ if not IsBound( StackType ) then
 fi;
 Read("data-structures/stack.gi");
 
+if not IsBound( NamedPipeHandleType ) then
+    Read("named-pipes/named-pipes.gd");
+fi;
+Read("named-pipes/named-pipes.gi");
+
 Read("canonization.g");
 Read("orbit.g");
 Read("parse-KPN-architecture.g");
