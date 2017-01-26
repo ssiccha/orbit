@@ -22,25 +22,12 @@ gap_readline_string = "ReadLine(inPipe);"
 print("Starting GAP..." , end="")
 gap_handle = gap.GapHandle()
 print("Done.")
-print("Initializing GAP Mappings Package...", end="")
-sys.stdout.flush()
-gap_handle.communicate(gap_read_string, echo=True)
-print("Done.")
 print("Initializing GAP PIPE...", end="")
 sys.stdout.flush()
-gap_handle.communicate(gap_in_pipe_string, echo=True)
-print("Done.")
-print("Sending message to GAP PIPE...", end="")
-sys.stdout.flush()
-gap_handle.communicate(gap_readline_string, echo=True)
-
-# from subprocess import Popen, PIPE, STDOUT
-# Popen(["/Users/goens/Development/orbit/python/cat_test.sh"])
-
 
 #Write something to gap
 out_pipe = os.open(out_pipe_filename,os.O_WRONLY) 
-os.write(out_pipe,"Hello, GAP!\n")
+os.write(out_pipe,("Hello, GAP!\n" + unichr(0004)))
 
 print("Done.")
 

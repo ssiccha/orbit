@@ -4,4 +4,5 @@
 ###############################
 Read("read.g");
 inPipe := NamedPipeHandle( "../pipes/py-to-gap-pipe" );
-ReadLine(inPipe)
+ReadLine(inPipe);
+

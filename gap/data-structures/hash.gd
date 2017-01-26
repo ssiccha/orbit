@@ -18,3 +18,5 @@ DeclareOperation( "HashTableCreate", [ IsObject ] );
 DeclareOperation( "HashTableCreate", [ IsObject, IsRecord ] );
 DeclareOperation( "HashTableAdd", [ IsMyHashTable, IsObject ]);
 DeclareOperation( "ListHashTable", [ IsMyHashTable ]);
+
+#DeclareOperation( "PARORB_HashFunction", [ IsPerm ] );
