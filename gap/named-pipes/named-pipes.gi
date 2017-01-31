@@ -31,12 +31,13 @@ end;
 ##################################################
 # Operation NamedPipeHandle
 # Input:
-#   pipeFilename 
+#   pipeFilename - string
+#   options - an options record
 # Filters:
-#   IsString
+#   IsString, IsRecord
 #
 # Output:
-#   
+#   newPipeHandle
 ##################################################
 InstallMethod( NamedPipeHandle,
 "for a pipe-filename string",
@@ -68,12 +69,10 @@ function( pipeFilename, options )
     return newPipeHandle;
 end );
 
-## TODO implement ReadLine method for IsNamedPipe type
-
 ##################################################
 # Operation ReadLine
 # Input:
-#   namedPipeHandle 
+#   namedPipeHandle
 # Filters:
 #   IsNamedPipeHandle
 #
@@ -86,8 +85,14 @@ InstallMethod( ReadLine,
 function( namedPipeHandle )
     local string;
     string := IO_ReadLine( namedPipeHandle!.pipe );
+    ## Ignore lines that start with a '#'
+    if string[1] = '#' then
+        Info( InfoWarning, 1, "Ignoring input starting with '#'." );
+        return ReadLine( namedPipeHandle );
+    fi;
+    ## Ctrl-D character was passed into pipe
     if string[1] = '\004' and Length( string ) = 2 then
-        ## TODO close file handle
+        ## TODO propagate '\004' signal?
         IO_close( namedPipeHandle!.pipe );
         return fail;
     fi;
