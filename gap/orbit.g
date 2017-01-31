@@ -90,7 +90,7 @@ end;
 ManageOrbits := function( mappingsStream, KPNArchitectureData )
   local numberProcessors, numberTasks, gensOfAutKPN, gensOfAutSemiArch,
   domains, canonization, encode,
-  pipe, newMapping, allMappings,
+  pipe, readFromStream, newMapping, allMappings,
   numberOrbits, orbitLengths, orbit, debug, bench_oldSize,
   res, percentageSimulated;
 
@@ -105,7 +105,6 @@ ManageOrbits := function( mappingsStream, KPNArchitectureData )
   numberOrbits := 0;
   orbitLengths := [];
 
-  ## TODO Put communication here?
   #unprocessed := ShallowCopy( mappingsStream );
   #if not IsSet( unprocessed ) then
   #  Error( "mappingsStream must be a set!" );
@@ -113,29 +112,28 @@ ManageOrbits := function( mappingsStream, KPNArchitectureData )
   #unprocessed := SortedList( Set( List( unprocessed, canonization ) ) );
   #Print( "number maps ", Size( unprocessed ), "\n" );
   ## Communication via a stream
-  pipe := NamedPipeHandle( mappingsStream );
 
-  ## TODO NOW implement IsNamedPipe part to make V this V work
   allMappings := [];
-  newMapping := ReadLine( pipe );
-  while newMapping = fail do
-    Add( allMappings, newMapping );
+  readFromStream := ReadLine( mappingsStream );
+  while not readFromStream = fail do
+    newMapping := ParseMapping( readFromStream, numberTasks, true );
+    Append( allMappings, [newMapping] );
     orbit := Set( SemigroupOnMappings( newMapping, KPNArchitectureData ) );
     numberOrbits := numberOrbits + 1;
     Add( orbitLengths, Length( orbit ) );
     debug := Size( allMappings );
     bench_oldSize := Size( allMappings );
-    SubtractSet( allMappings, orbit );
     debug := debug - Size( allMappings );
     #TODO use Info
     #Print( "-", debug, ", " );
     if bench_oldSize mod 5 < Size( allMappings ) mod 5 then
       #Print( "\n" );
     fi;
-    newMapping := ReadLine( pipe );
+    readFromStream := ReadLine( mappingsStream );
+    #Error( "Break Point - End of Iteration" );
   od;
   res := rec(
-    sizeSimulatedMappings    := Length( mappingsStream ),
+    sizeSimulatedMappings := Length( allMappings ),
     numberOrbits := numberOrbits,
     orbitLengths := SortedList( orbitLengths ),
     sizeOmega := Sum( orbitLengths ),

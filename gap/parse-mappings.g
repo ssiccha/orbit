@@ -6,12 +6,44 @@
 ##
 ##  Copyright...
 ##
-##  parse a list of P to PE mappings
+##  parse a P to PE mapping
 ##
 #############################################################################
 
+##################################################
+# function ParseMapping
+# Input:
+#   rawMapping - a string
+#   truncateAt - false, or the position the mapping should be truncated at
+#   startsWithZero - true iff the mapping counts PEs starting at zero
+#
+# Output:
+#   fail iff rawMapping started with a '#',
+#   a mapping (list of integers) otherwise
+##################################################
+ParseMapping := function( rawMapping, truncateAt, startsWithZero )
+    local mapping;
+    rawMapping := Chomp( rawMapping );
+    ## Get rid of comments
+    if not rawMapping[1] = '#' then
+        if not Position( rawMapping, '#' ) = fail then
+            rawMapping := rawMapping{ [ 1 .. Position( rawMapping, '#' ) - 1 ] };
+        fi;
+        mapping := EvalString(rawMapping);
+        if IsInt( truncateAt ) then
+            mapping := mapping{ [ 1 .. truncateAt ] };
+        fi;
+        if startsWithZero then
+            mapping := mapping + 1;
+        fi;
+        return mapping;
+    fi;
+    return fail;
+end;
+
+## DEPRECATED ##
 ParseMappings := function( data, opt... )
-    local truncateAt, folder, startsWithZero, inStream, mappings, buf, m;
+    local truncateAt, buf, folder, startsWithZero, inStream, mappings, m;
     if Length(opt) = 1 then
         truncateAt := opt[1];
     else
@@ -25,21 +57,7 @@ ParseMappings := function( data, opt... )
 
     buf := ReadLine( inStream );
     while not IsEndOfStream( inStream ) do
-        buf := Chomp( buf );
-        if not buf[1] = '#' then
-            if not Position( buf, '#' ) = fail then
-                m := m{ [ 1 .. Position( buf, '#' ) - 1 ] };
-            fi;
-            m := EvalString(buf);
-            if IsInt( truncateAt ) then
-                m := m{ [ 1 .. truncateAt ] };
-            fi;
-            if startsWithZero then
-                m := m + 1;
-            fi;
-            mappings[ Length( mappings ) + 1 ] := m;
-        fi;
-        buf := ReadLine( inStream );
+        ParseMapping( buf );
     od;
     CloseStream( inStream );
     mappings := Set( mappings );

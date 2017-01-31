@@ -28,7 +28,7 @@ fi;
 Read("named-pipes/named-pipes.gi");
 
 Read("canonization.g");
-Read("orbit.g");
 Read("parse-KPN-architecture.g");
 Read("parse-mappings.g");
+Read("orbit.g");
 Read("mappings-cache-lookup.g");

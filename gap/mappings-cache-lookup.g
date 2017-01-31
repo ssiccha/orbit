@@ -35,19 +35,15 @@ MappingsCacheLookup := function(
     outStreamFilename,
     opt...
 )
-    local simulatedMappings, KPNArchitectureData;
-    ## parse data
-    ## TODO Make this work with named pipes
+    local inPipe, KPNArchitectureData;
+    ## Parse KPN and Architecture data
     KPNArchitectureData := ParseKPNArchitecture(
         KPNString,
         ArchitectureString
     );
-    simulatedMappings := ParseMappings(
-        inStreamFilename,
-        KPNArchitectureData.numberTasks
-    );
+    inPipe := NamedPipeHandle( inStreamFilename );
     return ManageOrbits(
-        simulatedMappings,
+        inPipe,
         KPNArchitectureData
     );
 end;
