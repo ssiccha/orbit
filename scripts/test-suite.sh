@@ -32,11 +32,21 @@ echo "Running experiments for architecture ${ARCH} and"
 echo ${DATAFILENAMES}
 echo ""
 
+make_pipe () { 
+	 if [ ! -p $1 ]; then
+		  if [ ! -e $1 ]; then
+            mkfifo $1
+		  else
+				>&2 "Error. file $pipe exists but is not a pipe" 
+		  fi
+	 fi
+}
+
 ## DEBUG RUN ##
 if [ "$#" == "3" ]; then
     for filename in $DATAFILENAMES; do
         pipe="../pipes/"${filename}"-in-pipe"
-        mkfifo ${pipe}
+		  make_pipe $pipe
         cat ${DATADIR}/${filename} >> ${pipe} && echo "" >> ${pipe} &
         $GAPSCRIPT $APP $ARCH ${pipe} 1
         exit 1
@@ -53,7 +63,7 @@ mkdir -p $BASEDIR"/pipes"
 for filename in $DATAFILENAMES; do
     echo ${filename}
     pipe="../pipes/"${filename}"-in-pipe"
-    mkfifo ${pipe}
+    make_pipe $pipe
     cat ${DATADIR}/${filename} >> ${pipe} && echo "" >> ${pipe} &
     outfile="$OUTPUTDIR/results${filename#${APP}.${ARCH}}"
     $GAPSCRIPT $APP $ARCH ${pipe} 2>$OUTPUTDIR/errors.txt > $outfile
