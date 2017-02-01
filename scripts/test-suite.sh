@@ -38,14 +38,29 @@ make_pipe () {
             mkfifo $1
 		  else
 				>&2 "Error. file $pipe exists but is not a pipe" 
+				exit 1
 		  fi
 	 fi
 }
 
+execute_on_data () {
+    pipe="$BASEDIR/pipes/"$1"-in-pipe"
+    make_pipe $pipe
+    cat ${DATADIR}/$1 >> ${pipe} && echo "" >> ${pipe} &
+    OUTFILE="$OUTPUTDIR/results${1#${APP}.${ARCH}}"
+    echo "$1 ($OUTFILE)"
+    $GAPSCRIPT $APP $ARCH ${pipe} 2>$OUTPUTDIR/errors.txt > $OUTFILE
+    rm ${pipe}
+}
+
+if [ -e ~/.gap/emptyWorkspace ]; then
+	 $BASEDIR/scripts/create-empty-workspace.sh
+fi
+
 ## DEBUG RUN ##
 if [ "$#" == "3" ]; then
     for filename in $DATAFILENAMES; do
-        pipe="../pipes/"${filename}"-in-pipe"
+        pipe="$BASEDIR/pipes/"${filename}"-in-pipe"
 		  make_pipe $pipe
         cat ${DATADIR}/${filename} >> ${pipe} && echo "" >> ${pipe} &
         $GAPSCRIPT $APP $ARCH ${pipe} 1
@@ -59,16 +74,31 @@ mkdir -p $OUTPUTDIR
 mkdir -p $BASEDIR"/pipes"
 
 ## NORMAL RUN ##
-## TODO make it run in parallel!!
-for filename in $DATAFILENAMES; do
-    echo ${filename}
-    pipe="../pipes/"${filename}"-in-pipe"
-    make_pipe $pipe
-    cat ${DATADIR}/${filename} >> ${pipe} && echo "" >> ${pipe} &
-    outfile="$OUTPUTDIR/results${filename#${APP}.${ARCH}}"
-    $GAPSCRIPT $APP $ARCH ${pipe} 2>$OUTPUTDIR/errors.txt > $outfile
-    rm ${pipe}
-done
+
+## Prepare parallel execution
+if [ ! -z "`which sysctl`" ]; then #OSX
+  NUM_PROCESSORS=$((`sysctl -n hw.ncpu`))
+fi
+
+if [ ! -z "`which nproc`" ]; then #Linux
+  NUM_PROCESSORS=$((`nproc`))
+fi
+
+if [ -z "$NUM_PROCESSORS" ]; then
+ NUM_PROCESSORS=2 #conservative
+fi
+
+PARALLEL=`which parallel`
+if [ ! -z "$PARALLEL" ]; then
+  export -f execute_on_data make_pipe
+  export APP DATADIR ARCH GAPSCRIPT OUTPUTDIR BASEDIR
+  $PARALLEL -j $NUM_PROCESSORS execute_on_data ::: $DATAFILENAMES
+else
+	 echo "Warning: GNU parallel not found on your system; running sequentially."
+	 for filename in $DATAFILENAMES; do
+		  execute_on_data $filename; 
+	 done
+fi
 
 wait
 
