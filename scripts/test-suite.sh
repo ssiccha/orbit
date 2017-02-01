@@ -33,14 +33,15 @@ echo ${DATAFILENAMES}
 echo ""
 
 make_pipe () { 
-	 if [ ! -p $1 ]; then
-		  if [ ! -e $1 ]; then
+    if [ ! -p $1 ]; then
+        if [ ! -e $1 ]; then
             mkfifo $1
-		  else
-				>&2 "Error. file $pipe exists but is not a pipe" 
-				exit 1
-		  fi
-	 fi
+        else
+            foo
+            >&2 "Error. file $pipe exists but is not a pipe" 
+            exit 1
+        fi
+    fi
 }
 
 execute_on_data () {
@@ -54,14 +55,14 @@ execute_on_data () {
 }
 
 if [ -e ~/.gap/emptyWorkspace ]; then
-	 $BASEDIR/scripts/create-empty-workspace.sh
+    $BASEDIR/scripts/create-empty-workspace.sh
 fi
 
 ## DEBUG RUN ##
 if [ "$#" == "3" ]; then
     for filename in $DATAFILENAMES; do
         pipe="$BASEDIR/pipes/"${filename}"-in-pipe"
-		  make_pipe $pipe
+        make_pipe $pipe
         cat ${DATADIR}/${filename} >> ${pipe} && echo "" >> ${pipe} &
         $GAPSCRIPT $APP $ARCH ${pipe} 1
         exit 1
@@ -94,10 +95,10 @@ if [ ! -z "$PARALLEL" ]; then
   export APP DATADIR ARCH GAPSCRIPT OUTPUTDIR BASEDIR
   $PARALLEL -j $NUM_PROCESSORS execute_on_data ::: $DATAFILENAMES
 else
-	 echo "Warning: GNU parallel not found on your system; running sequentially."
-	 for filename in $DATAFILENAMES; do
-		  execute_on_data $filename; 
-	 done
+    echo "Warning: GNU parallel not found on your system; running sequentially."
+    for filename in $DATAFILENAMES; do
+        execute_on_data $filename; 
+    done
 fi
 
 wait
