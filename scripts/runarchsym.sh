@@ -7,6 +7,7 @@ if [ "$#" != "3" -a "$#" != "4" ]; then
     exit 1
 fi;
 
+GAP_BIN='gap'
 SCRIPTSDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BASEDIR=${SCRIPTSDIR%'/scripts'} # remove script directory
 GAPDIR=${BASEDIR}"/gap"
@@ -22,7 +23,7 @@ if [ "$#" == "4" ]; then
 fi;
 
 ## NORMAL RUN ##
-gap -o 50g -L ~/.gap/emptyWorkspace -r -b -q read.g << EOI
+$GAP_BIN -o 50g -L ~/.gap/emptyWorkspace -r -b -q read.g << EOI
 tmp := GET_REAL_TIME_OF_FUNCTION_CALL(
     MappingsCacheLookup,
     [ "$1", "$2", "$3", "dummyOutStream" ],
