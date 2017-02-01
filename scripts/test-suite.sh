@@ -32,12 +32,12 @@ echo "Running experiments for architecture ${ARCH} and"
 echo ${DATAFILENAMES}
 echo ""
 
-make_pipe () { 
+make_pipe () {
     if [ ! -p $1 ]; then
         if [ ! -e $1 ]; then
             mkfifo $1
         else
-            >&2 "Error. file $pipe exists but is not a pipe" 
+            >&2 "Error. file $pipe exists but is not a pipe"
             exit 1
         fi
     fi
@@ -96,7 +96,7 @@ if [ ! -z "$PARALLEL" ]; then
 else
     echo "Warning: GNU parallel not found on your system; running sequentially."
     for filename in $DATAFILENAMES; do
-        execute_on_data $filename; 
+        execute_on_data $filename;
     done
 fi
 
