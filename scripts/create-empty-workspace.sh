@@ -17,6 +17,5 @@ else
 fi 
 
 #file does not exist. create it!
-
 $GAP_BIN -b -q  << EOI
 SaveWorkspace("$WORKSPACE_FILE");
