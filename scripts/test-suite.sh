@@ -37,7 +37,6 @@ make_pipe () {
         if [ ! -e $1 ]; then
             mkfifo $1
         else
-            foo
             >&2 "Error. file $pipe exists but is not a pipe" 
             exit 1
         fi
@@ -77,12 +76,12 @@ mkdir -p $BASEDIR"/pipes"
 ## NORMAL RUN ##
 
 ## Prepare parallel execution
-if [ ! -z "`which sysctl`" ]; then #OSX
-  NUM_PROCESSORS=$((`sysctl -n hw.ncpu`))
-fi
-
 if [ ! -z "`which nproc`" ]; then #Linux
   NUM_PROCESSORS=$((`nproc`))
+else 
+    if [ ! -z "`which sysctl`" ]; then #OSX
+        NUM_PROCESSORS=$((`sysctl -n hw.ncpu`))
+    fi
 fi
 
 if [ -z "$NUM_PROCESSORS" ]; then
