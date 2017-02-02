@@ -1,5 +1,5 @@
 #expand aliases (gap might be called via an alias)
-GAP_BIN=/Users/goens/Development/gap/bin/gap.sh
+GAP_BIN=gap
 WORKSPACE_FILE="~/.gap/emptyWorkspace"
 
 #does the file exist already?
