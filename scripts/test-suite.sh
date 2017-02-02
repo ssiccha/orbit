@@ -78,7 +78,7 @@ mkdir -p $BASEDIR"/pipes"
 ## Prepare parallel execution
 if [ ! -z "`which nproc`" ]; then #Linux
   NUM_PROCESSORS=$((`nproc`))
-else 
+else
     if [ ! -z "`which sysctl`" ]; then #OSX
         NUM_PROCESSORS=$((`sysctl -n hw.ncpu`))
     fi
