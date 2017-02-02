@@ -37,7 +37,7 @@ make_pipe () {
         if [ ! -e $1 ]; then
             mkfifo $1
         else
-            >&2 "Error. file $pipe exists but is not a pipe" 
+            >&2 echo "Error. file $pipe exists but is not a pipe" 
             exit 1
         fi
     fi
