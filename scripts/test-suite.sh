@@ -85,7 +85,7 @@ else
 fi
 
 if [ -z "$NUM_PROCESSORS" ]; then
- NUM_PROCESSORS=2 #conservativ 
+ NUM_PROCESSORS=2 #conservative
 fi
 
 PARALLEL=`which parallel`
