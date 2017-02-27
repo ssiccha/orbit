@@ -11,9 +11,12 @@
 ##
 #############################################################################
 
-## HPCGAP: Transfer IO record to the public region.
-## TODO recognize whether we're running HPCGAP
-#MakeImmutable( IO );
+## Recognize whether we're running HPCGAP
+if IsBound( HPCGAP ) then
+    ## Transfer IO record to the public region.
+    MakeImmutable( IO );
+fi;
+
 ## Opens a pipe for both read and write access
 ## TODO change this later to include parameter for RDONLY or WRONLY
 PipeOpen := function( pipeFilename )
