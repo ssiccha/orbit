@@ -1,9 +1,10 @@
 #!/bin/bash
 # runarchsym.sh
 
-if [ "$#" != "3" -a "$#" != "4" ]; then
-    echo "Usage: runarchsym.sh <app-name> <arch-name> <in-pipe-filename> <debug>"
-    echo -en "\nAny 4th argument will trigger debug mode.\n"
+if [ "$#" != "4" -a "$#" != "5" ]; then
+    echo -en "Usage: runarchsym.sh <app-name> <arch-name>"
+    echo -en " <in-pipe-filename> <out-pipe-filename> <debug>"
+    echo -en "\nAny 5th argument will trigger debug mode.\n"
     exit 1
 fi;
 
@@ -14,11 +15,15 @@ GAPDIR=${BASEDIR}"/gap"
 cd ${GAPDIR}
 
 ## DEBUG MODE ##
-if [ "$#" == "4" ]; then
-    echo "Run the following commands to debug:"
+if [ "$#" == "5" ]; then
+    echo "Start GAP:"
     echo "gap read.g"
-    echo "MappingsCacheLookup( \"${1}\", \"${2}\", \"${3}\", \"dummyOutStream\" );"
-    echo "rm ${3}"
+    xsel --clear --clipboard
+    echo -n "MappingsCacheLookup( \"${1}\", \"${2}\", \"${3}\", \"${4}\" );" \
+        | xsel --append --clipboard
+    echo "Run (copied into clipboard):"
+    echo ""
+    echo "MappingsCacheLookup( \"${1}\", \"${2}\", \"${3}\", \"${4}\" );"
     exit 1
 fi;
 
@@ -26,7 +31,7 @@ fi;
 $GAP_BIN -o 50g -L ~/.gap/emptyWorkspace -r -b -q read.g << EOI
 tmp := GET_REAL_TIME_OF_FUNCTION_CALL(
     MappingsCacheLookup,
-    [ "$1", "$2", "$3", "dummyOutStream" ],
+    [ "$1", "$2", "$3", "$4" ],
     rec( passResult := true )
 );;
 if IsBound( tmp ) then

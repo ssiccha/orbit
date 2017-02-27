@@ -44,36 +44,46 @@ make_pipe () {
 }
 
 execute_on_data () {
-    pipe="$BASEDIR/pipes/"$1"-in-pipe"
-    make_pipe $pipe
-    cat ${DATADIR}/$1 >> ${pipe} && echo "" >> ${pipe} &
+    inpipe="$BASEDIR/pipes/"$1"-in-pipe"
+    outpipe="$BASEDIR/pipes/"$1"-out-pipe"
+    make_pipe $inpipe
+    make_pipe $outpipe
+    cat ${DATADIR}/$1 >> ${inpipe} && echo "" >> ${inpipe} &
     OUTFILE="$OUTPUTDIR/results${1#${APP}.${ARCH}}"
     echo "$1 ($OUTFILE)"
-    $GAPSCRIPT $APP $ARCH ${pipe} 2>$OUTPUTDIR/errors.txt > $OUTFILE
-    rm ${pipe}
+    $GAPSCRIPT $APP $ARCH ${inpipe} ${outpipe} 2>$OUTPUTDIR/errors.txt > $OUTFILE
+    rm ${inpipe} ${outpipe}
 }
 
-if [ -e ~/.gap/emptyWorkspace ]; then
+if [ ! -e ~/.gap/emptyWorkspace ]; then
     $BASEDIR/scripts/create-empty-workspace.sh
 fi
-
-## DEBUG RUN ##
-if [ "$#" == "3" ]; then
-    for filename in $DATAFILENAMES; do
-        pipe="$BASEDIR/pipes/"${filename}"-in-pipe"
-        make_pipe $pipe
-        cat ${DATADIR}/${filename} >> ${pipe} && echo "" >> ${pipe} &
-        $GAPSCRIPT $APP $ARCH ${pipe} 1
-        exit 1
-    done
-fi;
-
-cd $GAPDIR/
 
 mkdir -p $OUTPUTDIR
 mkdir -p $BASEDIR"/pipes"
 
+
+## DEBUG RUN ##
+if [ "$#" == "3" ]; then
+    for filename in $DATAFILENAMES; do
+        inpipe="$BASEDIR/pipes/"${filename}"-in-pipe"
+        outpipe="$BASEDIR/pipes/"${filename}"-out-pipe"
+        echo "Creating pipes."
+        make_pipe $inpipe
+        make_pipe $outpipe
+        echo "Writing data to in-pipe."
+        cat ${DATADIR}/${filename} >> ${inpipe} && echo "" >> ${inpipe} &
+        $GAPSCRIPT $APP $ARCH ${inpipe} ${outpipe} 1
+        echo -n "Hit Enter when done: "
+        read DONE
+        rm ${inpipe} ${outpipe}
+        exit 1
+    done
+fi;
+
+
 ## NORMAL RUN ##
+cd $GAPDIR/
 
 ## Prepare parallel execution
 if [ ! -z "`which nproc`" ]; then #Linux

@@ -35,15 +35,17 @@ MappingsCacheLookup := function(
     outStreamFilename,
     opt...
 )
-    local inPipe, KPNArchitectureData;
+    local inPipe, outPipe, KPNArchitectureData;
     ## Parse KPN and Architecture data
     KPNArchitectureData := ParseKPNArchitecture(
         KPNString,
         ArchitectureString
     );
     inPipe := NamedPipeHandle( inStreamFilename );
+    outPipe := NamedPipeHandle( outStreamFilename );
     return ManageOrbits(
         inPipe,
+        outPipe,
         KPNArchitectureData
     );
 end;
