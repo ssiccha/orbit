@@ -1,19 +1,13 @@
 #expand aliases (gap might be called via an alias)
 GAP_BIN=gap
-WORKSPACE_FILE="~/.gap/emptyWorkspace"
+WORKSPACE_FILE=${HOME}"/.gap/emptyWorkspace"
 
 #does the file exist already?
-if [ ! -d ~/.gap/ ]; then
-    mkdir ~/.gap
-fi
+mkdir -p ${HOME}/.gap
 
-if [ -f $WORKSPACE_FILE ]; then
+if [ -e $WORKSPACE_FILE ]; then
+    >&2 echo "Error. File $WORKSPACE_FILE exists!"
     exit 0
-else
-    if [ -e $WORKSPACE_FILE ]; then
-        >&2 "Error. file $WORKSPACE_FILE exists but is not a regular file."
-        exit 1
-    fi
 fi
 
 #file does not exist. create it!
