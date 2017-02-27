@@ -12,36 +12,37 @@
 ## Benchmarking and testing of hashTableOrbit
 
 ParseKPNArchitecture := function( KPNString, ArchitectureString )
-    local numberTasks, gensOfAutKPN, lastPos, truncateAt,
-        numberProcessors, gensOfAutSemiArch, domains, canonization,
-        KPNArchitectureData;
+    local numberTasks, lastPos, numberProcessors,
+      AutKPN, AutSemiArch, canonization,
+      KPNArchGroup, projection1, projection2, action,
+      KPNArchitectureData;
     ## Unused code went to ./deprecated/examples.g
     ########## DECIDE KPN ##########
     if KPNString = "audio_filter_3" then
         numberTasks := 8;
-        gensOfAutKPN := [
+        AutKPN := Group([
             (1,2)(3,4)(5,6)
-        ];
+        ]);
     elif KPNString = "jpeg" then
         numberTasks := 13;
-        gensOfAutKPN := [
+        AutKPN := Group([
             (1,2)(4,5)(7,8),
             (1,2,3)(4,5,6)(7,8,9)
-        ];
+        ]);
     elif KPNString = "jpeg_enc_no_multiread" then
         Error("MISSING");
     elif KPNString = "matmult" then
         numberTasks := 5;
-        gensOfAutKPN := [];
+        AutKPN := Group([]);
     elif KPNString = "mjpeg_compaan" then
         numberTasks := 12;
-        gensOfAutKPN := [
+        AutKPN := Group([
             (3,5,7,9)(4,6,8,10),
             (3,5)(4,6)
-    ];
+        ]);
     elif KPNString = "sobel" then
         numberTasks := 5;
-        gensOfAutKPN := [ (2,3) ];
+        AutKPN := Group([ (2,3) ]);
     elif Size( KPNString ) >= 10
     and KPNString{ [ 1 .. 10 ] } = "mandelbrot" then
         ## "mandelbrot_njobs"
@@ -52,7 +53,7 @@ ParseKPNArchitecture := function( KPNString, ArchitectureString )
         ## The action on the KPN will be handled completely
         ## by the canonization function
         #### TODO: Does that work correctly? ####
-        gensOfAutKPN := [];
+        AutKPN := Group([]);
     else
         Error("Wrong KPN string!");
     fi;
@@ -60,32 +61,20 @@ ParseKPNArchitecture := function( KPNString, ArchitectureString )
     ########## DECIDE Architecture ##########
     if ArchitectureString = "s4xs8" then
         numberProcessors := 12;
-        gensOfAutSemiArch := [
+        AutSemiArch := Group([
             (1,2,3,4),
             (1,2),
             (5,6,7),
             (7,8,9),
             (9,10,11),
             (11,12)
-        ];
-        domains := [
-            [1..12],
-            [1..12],
-            [1..12],
-            [1..12],
-            [1..12],
-            [1..12]
-        ];
+        ]);
     elif ArchitectureString = "s4" then
         numberProcessors := 4;
-        gensOfAutSemiArch := [
+        AutSemiArch := Group([
             (1,2,3,4),
             (1,2)
-        ];
-        domains := [
-            [1..4],
-            [1..4]
-        ];
+        ]);
     fi;
 
     ## TODO Pass action to orbit function instead of canonization etc
@@ -94,12 +83,22 @@ ParseKPNArchitecture := function( KPNString, ArchitectureString )
         numberTasks,
         ArchitectureString
     );
+    KPNArchGroup := DirectProduct( AutKPN, AutSemiArch );
+    projection1 := Projection( KPNArchGroup, 1 );
+    projection2 := Projection( KPNArchGroup, 2 );
+    action := function( alpha, s )
+        local sTask, sArch;
+        sTask := Image( projection1, s );
+        sArch := Image( projection2, s );
+        alpha := Permuted( alpha, sTask );
+        alpha := OnTuples( alpha, sArch );
+        return alpha;
+    end;
     KPNArchitectureData := rec(
         numberProcessors := numberProcessors,
         numberTasks := numberTasks,
-        gensOfAutKPN := gensOfAutKPN,
-        gensOfAutSemiArch := gensOfAutSemiArch,
-        domains := domains,
+        KPNArchGroup := KPNArchGroup,
+        action := action,
         canonization := canonization
     );
     return KPNArchitectureData;
