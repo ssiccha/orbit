@@ -70,6 +70,7 @@ SemigroupOnMappings := function( m0, KPNArchitectureData, options... )
   return Concatenation( Compacted( hashTable!.elements ) );
 end;
 
+## TODO CLEANUP !! ##
 ###############################
 # function NumberOfOrbits
 # Input:
@@ -87,53 +88,59 @@ end;
 ## TODO CLEANUP !! ##
 ## TODO When and how is HashTableCreate called?
 ##  Only in the single orbit calculations
-ManageOrbits := function( mappingsStream, KPNArchitectureData )
-  local numberProcessors, numberTasks, gensOfAutKPN, gensOfAutSemiArch,
-  domains, canonization, encode,
-  pipe, readFromStream, newMapping, allMappings,
-  numberOrbits, orbitLengths, orbit, debug, bench_oldSize,
+ManageOrbits := function( mappingsStream, outStream, KPNArchitectureData )
+  local numberProcessors, numberTasks,
+  KPNArchGroup, action,
+  canonization, encode,
+  pipe, readFromStream, newMapping, numberMappings,
+  isNew, representatives, minimal,
+  computedOrbits, numberOrbits, orbitLengths, orbit,
+  debug, bench_oldSize,
   res, percentageSimulated;
 
   numberProcessors := KPNArchitectureData.numberProcessors;
   numberTasks := KPNArchitectureData.numberTasks;
-  gensOfAutKPN := KPNArchitectureData.gensOfAutKPN;
-  gensOfAutSemiArch := KPNArchitectureData.gensOfAutSemiArch;
-  domains := KPNArchitectureData.domains;
   canonization := KPNArchitectureData.canonization;
+  KPNArchGroup := KPNArchitectureData.KPNArchGroup;
+  action := KPNArchitectureData.action;
 
   encode := CreateEncodeFunction( numberProcessors, numberTasks );
   numberOrbits := 0;
+  numberMappings := 0;
   orbitLengths := [];
+  representatives := [];
+  computedOrbits := [];
 
-  #unprocessed := ShallowCopy( mappingsStream );
-  #if not IsSet( unprocessed ) then
-  #  Error( "mappingsStream must be a set!" );
-  #fi;
-  #unprocessed := SortedList( Set( List( unprocessed, canonization ) ) );
-  #Print( "number maps ", Size( unprocessed ), "\n" );
-  ## Communication via a stream
-
-  allMappings := [];
   readFromStream := ReadLine( mappingsStream );
   while not readFromStream = fail do
     newMapping := ParseMapping( readFromStream, numberTasks, true );
-    Append( allMappings, [newMapping] );
-    orbit := Set( SemigroupOnMappings( newMapping, KPNArchitectureData ) );
-    numberOrbits := numberOrbits + 1;
-    Add( orbitLengths, Length( orbit ) );
-    debug := Size( allMappings );
-    bench_oldSize := Size( allMappings );
-    debug := debug - Size( allMappings );
-    #TODO use Info
-    #Print( "-", debug, ", " );
-    if bench_oldSize mod 5 < Size( allMappings ) mod 5 then
+    numberMappings := numberMappings + 1;
+    ## Check some easy invariants
+    # TODO
+    ## Thorough test for equivalence
+    isNew := not ForAny( computedOrbits, orbit -> newMapping in orbit );
+    if isNew then
+        ## DEPRECATED TODO delete
+        #orbit := SemigroupOnMappings( newMapping, KPNArchitectureData );
+        orbit := Orb( KPNArchGroup, newMapping, action );
+        Enumerate( orbit );
+        ## Add orbit
+        Add( computedOrbits, orbit );
+        Append( representatives, [newMapping] );
+        numberOrbits := numberOrbits + 1;
+        Add( orbitLengths, Length( orbit ) );
+    fi;
+    ## FIXME
+    bench_oldSize := numberMappings;
+    if bench_oldSize mod 5 < numberMappings mod 5 then
       #Print( "\n" );
     fi;
     readFromStream := ReadLine( mappingsStream );
     #Error( "Break Point - End of Iteration" );
   od;
   res := rec(
-    sizeSimulatedMappings := Length( allMappings ),
+    representatives := representatives,
+    sizeSimulatedMappings := numberMappings,
     numberOrbits := numberOrbits,
     orbitLengths := SortedList( orbitLengths ),
     sizeOmega := Sum( orbitLengths ),

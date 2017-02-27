@@ -11,6 +11,7 @@
 #############################################################################
 
 LoadPackage("IO");
+LoadPackage("orb");
 Read("utils.g");
 Read("data-structures/encode.g");
 if not IsBound( HashTableType ) then
